@@ -1,7 +1,6 @@
 # 🏗️ Axis IT – Integrated Property, Construction, and Maintenance Management System
 
 **🌐 Live Demo:** [Axis IT Web App](https://axisitconstruction.onrender.com/)  
-**📂 Repository:** [GitHub Link](https://github.com/VCSTDN2024/insy7315-poe-the_b_team.git)
 
 ---
 
