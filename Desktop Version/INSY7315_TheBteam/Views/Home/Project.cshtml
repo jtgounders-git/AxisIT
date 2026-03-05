@@ -1,0 +1,40 @@
+﻿@model List<INSY7315_TheBteam.Models.ProjectModel>
+@{
+    Layout = null;
+    var role = ViewData["Role"]?.ToString();
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Projects</title>
+</head>
+<body>
+    <h2>Projects</h2>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div style="color:green">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div style="color:red">@TempData["ErrorMessage"]</div>
+    }
+
+    @if (role == "Admin" || role == "Project Manager")
+    {
+        <a href="/Home/CreateProject">Create Project</a>
+    }
+
+    <ul>
+        @foreach (var p in Model)
+        {
+            <li>
+                <strong>@p.Title</strong> - Budget: @p.TotalBudget - Start: @p.StartDate.ToShortDateString()
+                <a href="/Home/ProjectDetails?id=@p.Id">View</a>
+            </li>
+        }
+    </ul>
+
+    <a href="/Home/Dashboard">Back to Dashboard</a>
+</body>
+</html>

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "920410296191",
+    "project_id": "insy7315-axisit",
+    "storage_bucket": "insy7315-axisit.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:920410296191:android:889f892f010d840510544a",
+        "android_client_info": {
+          "package_name": "com.example.insy7315_thebteam"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "920410296191-df4r95oi9r0mdftl7jp6esbgmf8dt349.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.insy7315_thebteam",
+            "certificate_hash": "be0ed01f6efd093d5f83114077c40cf44eaff374"
+          }
+        },
+        {
+          "client_id": "920410296191-eevfco7vmbd584mqhn8rl0ru3do502i6.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA49vcyzF-joOcll_BR9-wqHLnnWrjy67w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "920410296191-eevfco7vmbd584mqhn8rl0ru3do502i6.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

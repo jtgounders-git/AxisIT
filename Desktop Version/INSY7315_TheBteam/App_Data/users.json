@@ -1,0 +1,26 @@
+{
+  "Keenste": {
+    "PasswordHash": "CchbPNGNe/hSmVT8U7cajo7g/kFVPTn4WLl6Vg8o8cmESU0KRSO47214aSrOnp2J",
+    "Role": "Contractor",
+    "FailedAttempts": 0,
+    "LockoutUntil": null
+  },
+  "Keanan 23": {
+    "PasswordHash": "TGqd\u002BSytxyVB1Io2xaWL\u002BV3ldRmy3JypYQ/aE67EGcVZwGPXaT9STOslPHpNBpOf",
+    "Role": "Project Manager",
+    "FailedAttempts": 0,
+    "LockoutUntil": null
+  },
+  "admin": {
+    "PasswordHash": "WOzewXQWiRWI2opltIPA2hvOTRnJQFUZud5paBTtAcgR0su6Mg76FhLxn\u002BkGEZ2Q",
+    "Role": "Admin",
+    "FailedAttempts": 0,
+    "LockoutUntil": null
+  },
+  "Mojalefa": {
+    "PasswordHash": "ZA1XlkZfL2OywfOqukfkIgX0QmVABYkz2ME4VCXqw3nghKBXn7D239J\u002BObDyQZOf",
+    "Role": "Client",
+    "FailedAttempts": 0,
+    "LockoutUntil": null
+  }
+}

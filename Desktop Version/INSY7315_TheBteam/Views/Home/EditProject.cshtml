@@ -1,0 +1,84 @@
+﻿@model INSY7315_TheBteam.Models.ProjectModel
+@{
+    Layout = null;
+    var role = ViewData["Role"]?.ToString();
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Edit Project - @Model.Title</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        input, select, textarea, button {
+            margin: 5px 0;
+            padding: 5px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .phase-container {
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h2>Edit Project - @Model.Title</h2>
+
+    <form method="post" action="/Home/EditProject">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="Id" value="@Model.Id" />
+
+        <label>Project Code</label>
+        <input type="text" name="ProjectCode" value="@Model.ProjectCode" required />
+
+        <label>Title</label>
+        <input type="text" name="Title" value="@Model.Title" required />
+
+        <label>Client</label>
+        <input type="text" name="Client" value="@Model.Client" required />
+
+        <label>Contractor</label>
+        <input type="text" name="Contractor" value="@Model.Contractor" required />
+
+        <label>Total Budget</label>
+        <input type="number" name="TotalBudget" value="@Model.TotalBudget" required />
+
+        <label>Start Date</label>
+        <input type="date" name="StartDate" value="@Model.StartDate.ToString("yyyy-MM-dd")" required />
+
+        <h3>Phases</h3>
+        <div id="phasesContainer">
+            @for (int i = 0; i < Model.DetailedPhases.Count; i++)
+            {
+                var ph = Model.DetailedPhases[i];
+                <div class="phase-container">
+                    <input type="hidden" name="DetailedPhases[@i].Id" value="@ph.Id" />
+                    <label>Phase Name</label>
+                    <input type="text" name="DetailedPhases[@i].Name" value="@ph.Name" required />
+                    <label>Budget</label>
+                    <input type="number" name="DetailedPhases[@i].Budget" value="@ph.Budget" required />
+                    <label>Deadline</label>
+                    <input type="date" name="DetailedPhases[@i].Deadline" value="@ph.Deadline.ToString("yyyy-MM-dd")" required />
+                    <label>Projected Percent</label>
+                    <input type="number" name="DetailedPhases[@i].ProjectedPercent" min="0" max="100" value="@ph.ProjectedPercent" required />
+                    <label>Actual Percent</label>
+                    <input type="number" name="DetailedPhases[@i].ActualPercent" min="0" max="100" value="@ph.ActualPercent" />
+                </div>
+            }
+        </div>
+
+        <button type="submit">Save Changes</button>
+    </form>
+
+    <a href="/Home/Projects">← Back to Projects</a>
+</body>
+</html>

@@ -1,0 +1,361 @@
+﻿@{
+    Layout = null;
+    var user = ViewData["User"]?.ToString();
+    var role = ViewData["Role"]?.ToString();
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Upload Center</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e7d, #4a5f9e);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #2c3e7d;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .welcome-text {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+            .back-btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
+            }
+
+        /* Main Content */
+        .main-content {
+            padding: 3rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 3rem;
+            font-weight: 300;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 2.5rem;
+            margin-bottom: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+
+        .upload-area {
+            border: 3px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+            .upload-area:hover {
+                border-color: rgba(180, 160, 255, 0.6);
+                background: rgba(255, 255, 255, 0.06);
+            }
+
+        .upload-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+
+        .upload-area h3 {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-area p {
+            opacity: 0.7;
+            font-size: 0.95rem;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-type-selector {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .file-type-btn {
+            padding: 0.6rem 1.3rem;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+            .file-type-btn:hover {
+                background: rgba(255, 255, 255, 0.15);
+            }
+
+            .file-type-btn.active {
+                background: rgba(138, 120, 234, 0.4);
+                border-color: rgba(180, 160, 255, 0.6);
+            }
+
+        /* Uploaded Files Section */
+        .uploaded-files {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            margin-bottom: 12px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+            .file-item:hover {
+                background: rgba(255, 255, 255, 0.08);
+                transform: translateX(5px);
+            }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .file-icon {
+            font-size: 1.8rem;
+        }
+
+        .file-details {
+            text-align: left;
+        }
+
+        .file-name {
+            font-weight: 500;
+            font-size: 1rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .file-meta {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+
+        .delete-btn {
+            background: rgba(255, 107, 107, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 107, 107, 0.5);
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+            .delete-btn:hover {
+                background: rgba(255, 107, 107, 0.5);
+                transform: scale(1.05);
+            }
+
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo">AI</div>
+            <div class="logo-text">
+                <h1>Axis I.T</h1>
+                <p>Construction Management System</p>
+            </div>
+        </div>
+        <div class="user-section">
+            <span class="welcome-text">Welcome, @user!</span>
+            <a href="/Home/Dashboard" class="back-btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 class="page-title">Upload Center</h1>
+        <p class="page-subtitle">Upload and manage your project documents</p>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h2 class="section-title">Upload Documents</h2>
+            <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📁</div>
+                <h3>Click to upload or drag and drop</h3>
+                <p>PDF, DOC, DOCX, JPG, PNG (Max 10MB)</p>
+            </div>
+            <input type="file" id="fileInput" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+
+            <div class="file-type-selector">
+                <button class="file-type-btn active">Photos</button>
+                <button class="file-type-btn">Reports</button>
+                <button class="file-type-btn">Blueprints</button>
+                <button class="file-type-btn">Invoices</button>
+            </div>
+        </div>
+
+        <!-- Uploaded Files Section -->
+        <div class="uploaded-files">
+            <h2 class="section-title">Recent Uploads</h2>
+
+            <div class="file-item">
+                <div class="file-info">
+                    <div class="file-icon">📄</div>
+                    <div class="file-details">
+                        <div class="file-name">Progress_Report_Oct2025.pdf</div>
+                        <div class="file-meta">Uploaded: Oct 7, 2025 | Size: 2.4 MB</div>
+                    </div>
+                </div>
+                <button class="delete-btn">Delete</button>
+            </div>
+
+            <div class="file-item">
+                <div class="file-info">
+                    <div class="file-icon">📷</div>
+                    <div class="file-details">
+                        <div class="file-name">Site_Photo_BuildingA.jpg</div>
+                        <div class="file-meta">Uploaded: Oct 6, 2025 | Size: 1.8 MB</div>
+                    </div>
+                </div>
+                <button class="delete-btn">Delete</button>
+            </div>
+
+            <div class="file-item">
+                <div class="file-info">
+                    <div class="file-icon">📊</div>
+                    <div class="file-details">
+                        <div class="file-name">Material_Invoice_2025.xlsx</div>
+                        <div class="file-meta">Uploaded: Oct 5, 2025 | Size: 854 KB</div>
+                    </div>
+                </div>
+                <button class="delete-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.querySelectorAll('.file-type-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.file-type-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                alert(`${e.target.files.length} file(s) selected for upload`);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+﻿@model INSY7315_TheBteam.Models.MaintenanceRequestModel
+@{
+    Layout = null;
+    var role = ViewData["Role"]?.ToString();
+    var contractors = ViewData["AllContractors"] as List<string> ?? new List<string>();
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.Title</title>
+</head>
+<body>
+    <h2>@Model.Title</h2>
+    <p>@Model.Description</p>
+    <p>Client: @Model.ClientUsername</p>
+    <p>Assigned: @Model.AssignedContractor</p>
+    <p>Status: @Model.Status</p>
+    <p>
+        Files:
+        @foreach (var f in Model.UploadedFiles)
+        {
+            <div><a href="@f" target="_blank">@f</a></div>
+        }
+    </p>
+
+    @if (role == "Admin" || role == "Project Manager")
+    {
+        <form method="post" action="/Home/AssignContractor">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="requestId" value="@Model.Id" />
+            <select name="contractor">
+                <option value="">-- Select Contractor --</option>
+                @foreach (var c in contractors)
+                {
+                    <option value="@c">@c</option>
+                }
+            </select>
+            <button type="submit">Assign</button>
+        </form>
+    }
+
+    @if (role == "Contractor" && Model.AssignedContractor == (Context.Session.GetString("User") ?? ""))
+    {
+        <form method="post" action="/Home/UpdateRequestStatus">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="requestId" value="@Model.Id" />
+            <select name="status">
+                <option value="InProgress">In Progress</option>
+                <option value="Complete">Complete</option>
+            </select>
+            <button type="submit">Update Status</button>
+        </form>
+    }
+
+    @if ((role == "Admin" || role == "Project Manager"))
+    {
+        <form method="post" action="/Home/UpdateRequestStatus">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="requestId" value="@Model.Id" />
+            <select name="status">
+                <option value="Pending">Pending</option>
+                <option value="InProgress">In Progress</option>
+                <option value="Complete">Complete</option>
+            </select>
+            <button type="submit">Set Status</button>
+        </form>
+    }
+
+    <a href="/Home/Requests">Back to Requests</a>
+</body>
+</html>

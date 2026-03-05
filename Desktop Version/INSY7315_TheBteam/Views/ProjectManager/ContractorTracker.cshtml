@@ -1,0 +1,549 @@
+﻿@{
+    Layout = null;
+    var user = ViewData["User"]?.ToString();
+    var role = ViewData["Role"]?.ToString();
+    var email = ViewData["Email"]?.ToString();
+
+    // Both Admin and Project Manager roles have full access to this page
+    var hasFullAccess = role == "Admin" || role == "ProjectManager" || role == "Project Manager";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Contractor Tracker - Axis IT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg,#2c3e7d,#4a5f9e);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(0,0,0,0.2);
+            padding: 1.2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2c3e7d;
+            font-weight: 700;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            text-align: right;
+        }
+
+        .welcome-text {
+            font-weight: 500;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            background: rgba(138,120,234,0.3);
+            border: 1px solid rgba(138,120,234,0.5);
+            margin-top: 0.25rem;
+        }
+
+        .logout-btn {
+            background: rgba(138,120,234,0.9);
+            padding: 0.7rem 1.8rem;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+        }
+
+        .main-content {
+            padding: 2.5rem 3rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-sub {
+            text-align: center;
+            opacity: 0.85;
+            margin-bottom: 2rem;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .search-input {
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.02);
+            color: white;
+            min-width: 220px;
+        }
+
+        .section-divider {
+            margin: 3rem 0 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+            .section-divider::before, .section-divider::after {
+                content: '';
+                flex: 1;
+                height: 1px;
+                background: rgba(255,255,255,0.2);
+            }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: rgba(200,180,255,1);
+            white-space: nowrap;
+        }
+
+        .contractors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+            gap: 1rem;
+        }
+
+        .contractor-card {
+            background: rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 1.25rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            transition: all 0.25s;
+            cursor: pointer;
+        }
+
+            .contractor-card:hover {
+                transform: translateY(-4px);
+                background: rgba(255,255,255,0.09);
+            }
+
+            .contractor-card.no-tasks {
+                opacity: 0.7;
+                border-color: rgba(255,255,255,0.05);
+            }
+
+                .contractor-card.no-tasks:hover {
+                    opacity: 0.85;
+                }
+
+        .contractor-name {
+            font-size: 1.05rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .contractor-email {
+            font-size: 0.9rem;
+            opacity: 0.85;
+            margin-bottom: 0.75rem;
+        }
+
+        .contractor-stats {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-pill {
+            background: rgba(200,180,255,0.08);
+            padding: 0.4rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(200,180,255,0.06);
+        }
+
+            .stat-pill.zero {
+                background: rgba(255,255,255,0.03);
+                opacity: 0.6;
+            }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+        }
+
+            .modal.active {
+                display: flex;
+            }
+
+        .modal-content {
+            width: 90%;
+            max-width: 900px;
+            background: linear-gradient(180deg, rgba(28,36,66,0.95), rgba(23,30,55,0.95));
+            border-radius: 12px;
+            padding: 1.25rem;
+            color: white;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-height: 60vh;
+            overflow: auto;
+            padding-right: 0.5rem;
+        }
+
+        .task-row {
+            background: rgba(255,255,255,0.02);
+            padding: 0.9rem;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-title {
+            font-weight: 600;
+        }
+
+        .task-meta {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn {
+            padding: 0.45rem 0.75rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.06);
+            background: rgba(255,255,255,0.04);
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+            .btn:hover {
+                background: rgba(255,255,255,0.08);
+            }
+
+            .btn.primary {
+                background: rgba(138,120,234,0.9);
+                border-color: rgba(138,120,234,0.9);
+            }
+
+        .no-tasks-msg {
+            padding: 2rem;
+            text-align: center;
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .empty-state {
+            grid-column: 1/-1;
+            text-align: center;
+            opacity: 0.7;
+            padding: 2rem;
+        }
+
+        @@media (max-width:768px) {
+            .main-content {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .user-section {
+                flex-direction: column;
+            }
+
+            .filter-row {
+                justify-content: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div style="display:flex;gap:1rem;align-items:center;">
+            <div class="logo">AI</div>
+            <div class="logo-text"><h1>Axis I.T</h1></div>
+        </div>
+        <div class="user-section">
+            <div style="text-align:right;">
+                <div class="welcome-text">@user</div>
+                @if (!string.IsNullOrEmpty(role))
+                {
+                    <div class="role-badge">@role</div>
+                }
+                @if (!string.IsNullOrEmpty(email))
+                {
+                    <div style="font-size:0.9rem; opacity:0.85; margin-top:0.25rem;">@email</div>
+                }
+            </div>
+            <a href="/Home/Dashboard" class="btn" style="margin-left:1rem;">← Back to Dashboard</a>
+            <a href="/Home/Logout" class="logout-btn" style="margin-left:0.75rem;">Logout</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-title">Contractor Tracker</div>
+        <div class="page-sub">See all contractors and their assigned tasks — click a contractor card to view task details.</div>
+        <div class="filter-row">
+            <input id="search" class="search-input" placeholder="Search contractors (name or email)..." />
+            <button id="refreshBtn" class="btn">Refresh</button>
+        </div>
+
+        <div class="section-divider"><span class="section-title">🔧 Active Contractors (with assigned tasks)</span></div>
+        <div id="activeContractorsGrid" class="contractors-grid"><div class="empty-state">Loading contractors...</div></div>
+
+        <div class="section-divider"><span class="section-title">📋 Other Contractors (no tasks assigned)</span></div>
+        <div id="otherContractorsGrid" class="contractors-grid"><div class="empty-state">Loading contractors...</div></div>
+    </div>
+
+    <div id="contractorModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <div id="modalContractorName" style="font-size:1.1rem;font-weight:700;">Contractor</div>
+                    <div id="modalContractorEmail" style="opacity:0.85;font-size:0.95rem;"></div>
+                </div>
+                <div><button class="btn" onclick="closeModal()">Close</button></div>
+            </div>
+            <div style="display:flex;gap:1rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+                <div class="stat-pill" id="modalTotal">Total: 0</div>
+                <div class="stat-pill" id="modalInProgress">In Progress: 0</div>
+                <div class="stat-pill" id="modalPending">Pending: 0</div>
+                <div class="stat-pill" id="modalCompleted">Completed: 0</div>
+            </div>
+            <div id="modalTasks" class="task-list"></div>
+        </div>
+    </div>
+
+    <script>
+        // Note: Both Admin and Project Manager roles have identical access to all features
+        const currentUser = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(((ViewData["Email"] ?? ViewData["User"]) ?? "").ToString()));
+        const currentRole = @Html.Raw(System.Text.Json.JsonSerializer.Serialize((ViewData["Role"] ?? "").ToString()));
+
+        let projects = [], allTasks = [], contractorsMap = {}, allRegisteredContractors = [];
+
+        async function loadAllContractors() {
+            try {
+                const resp = await fetch('/Contractor/GetAllContractors');
+                const result = await resp.json();
+                allRegisteredContractors = (result.success && Array.isArray(result.data))
+                    ? result.data.filter(u => (u.Role || u.role) === 'Contractor')
+                    : [];
+                console.log('[ContractorTracker] Loaded contractors:', allRegisteredContractors.length);
+            } catch(e) {
+                console.error('[ContractorTracker] Error loading contractors', e);
+                allRegisteredContractors = [];
+            }
+        }
+
+        async function loadProjectsAndTasks() {
+            ['activeContractorsGrid','otherContractorsGrid'].forEach(id => document.getElementById(id).innerHTML = '<div class="empty-state">Loading contractors...</div>');
+            projects = [];
+            try {
+                console.log('[ContractorTracker] Loading projects... Role:', currentRole);
+                // ✅ Pass includeAll=true to see ALL projects (not just user's own projects)
+                const projResp = await fetch('/ProjectManager/GetProjects?includeAll=true');
+                const projJson = await projResp.json();
+                console.log('[ContractorTracker] Projects response:', projJson);
+                if (!projJson.success) {
+                    console.error('[ContractorTracker] Failed to load projects:', projJson.message);
+                    document.getElementById('activeContractorsGrid').innerHTML = `<div class="empty-state">Error loading projects: ${projJson.message || 'Unknown error'}</div>`;
+                    return;
+                }
+                projects = projJson.data || [];
+                console.log('[ContractorTracker] Loaded projects count:', projects.length);
+            } catch(e) {
+                console.error('[ContractorTracker] Exception loading projects:', e);
+                document.getElementById('activeContractorsGrid').innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
+                return;
+            }
+
+            allTasks = [];
+            console.log('[ContractorTracker] Loading tasks for', projects.length, 'projects...');
+            for (const p of projects) {
+                try {
+                    const tasksResp = await fetch(`/TaskManagement/GetProjectTasks?projectId=${encodeURIComponent(p.id)}`);
+                    const tasksJson = await tasksResp.json();
+                    console.log(`[ContractorTracker] Tasks for project ${p.id}:`, tasksJson);
+                    if (tasksJson.success && Array.isArray(tasksJson.data)) {
+                        const projectTasks = tasksJson.data.map(t => ({...t,_projectId:p.id,_projectTitle:p.title||p.ProjectCode||'Project'}));
+                        allTasks.push(...projectTasks);
+                        console.log(`[ContractorTracker] Added ${projectTasks.length} tasks from project ${p.id}`);
+                    } else {
+                        console.warn(`[ContractorTracker] No tasks or error for project ${p.id}:`, tasksJson.message);
+                    }
+                } catch(e) { console.error('[ContractorTracker] Error loading tasks for project', p.id, e); }
+            }
+            console.log('[ContractorTracker] Total tasks loaded:', allTasks.length);
+
+            contractorsMap = {};
+            allTasks.forEach(t => {
+                const assigned = (t.assignedContractor||t.AssignedContractor||'').toString().trim();
+                if (!assigned) return;
+                const key = assigned.toLowerCase();
+                if (!contractorsMap[key]) contractorsMap[key] = { displayName: assigned, email: assigned, tasks: [] };
+                contractorsMap[key].tasks.push(t);
+            });
+            console.log('[ContractorTracker] Contractors with tasks:', Object.keys(contractorsMap).length);
+            console.log('[ContractorTracker] ContractorsMap:', contractorsMap);
+
+            renderContractorsGrids();
+        }
+
+        function renderContractorsGrids(filter='') {
+            const activeGrid = document.getElementById('activeContractorsGrid');
+            const otherGrid = document.getElementById('otherContractorsGrid');
+            const active=[],other=[];
+
+            allRegisteredContractors.forEach(c => {
+                const email=(c.Email||c.email||'').toLowerCase();
+                const displayName=c.DisplayName||c.displayName||c.Email||c.email||'Unknown';
+                if(filter && !displayName.toLowerCase().includes(filter.toLowerCase()) && !email.includes(filter.toLowerCase())) return;
+                (contractorsMap[email] && contractorsMap[email].tasks.length>0 ? active : other).push({...c,email,displayName});
+            });
+
+            activeGrid.innerHTML = active.length===0 ? '<div class="empty-state">No active contractors with tasks found.</div>'
+                : active.sort((a,b)=>((contractorsMap[b.email]?.tasks.length||0)-(contractorsMap[a.email]?.tasks.length||0)))
+                      .map(c=>renderContractorCard(c,true)).join('');
+
+            otherGrid.innerHTML = other.length===0 ? '<div class="empty-state">No other contractors found.</div>'
+                : other.sort((a,b)=>a.displayName.localeCompare(b.displayName))
+                      .map(c=>renderContractorCard(c,false)).join('');
+        }
+
+        function renderContractorCard(c,hasTasks){
+            const email=c.email,displayName=c.displayName;
+            if(hasTasks){
+                const data=contractorsMap[email];
+                const total=data.tasks.length;
+                const completed=data.tasks.filter(t=>!!t.isCompleted||(t.status||t.Status||'').toLowerCase()==='completed'||t.IsCompleted===true).length;
+                const inProgress=data.tasks.filter(t=>!(t.isCompleted||false) && ['active','inprogress','in-progress'].includes((t.status||t.Status||'').toLowerCase())).length;
+                const pending=total-completed-inProgress;
+                return `<div class="contractor-card" role="button" tabindex="0" onclick="openContractorModal('${escapeJs(email)}')">
+                    <div class="contractor-name">${escapeHtml(displayName)}</div>
+                    <div class="contractor-email">${escapeHtml(email)}</div>
+                    <div class="contractor-stats" style="margin-top:0.75rem;">
+                        <div class="stat-pill">Tasks: ${total}</div>
+                        <div class="stat-pill">In Progress: ${inProgress}</div>
+                        <div class="stat-pill">Pending: ${pending}</div>
+                        <div class="stat-pill">Completed: ${completed}</div>
+                    </div>
+                </div>`;
+            } else {
+                return `<div class="contractor-card no-tasks" role="button" tabindex="0" onclick="showNoTasksMessage('${escapeJs(displayName)}')">
+                    <div class="contractor-name">${escapeHtml(displayName)}</div>
+                    <div class="contractor-email">${escapeHtml(email)}</div>
+                    <div class="contractor-stats" style="margin-top:0.75rem;"><div class="stat-pill zero">No tasks assigned</div></div>
+                </div>`;
+            }
+        }
+
+        function showNoTasksMessage(name){alert(`${name} has no tasks assigned yet.`);}
+        function openContractorModal(email){
+            const key=email.toLowerCase();
+            const data=contractorsMap[key];
+            if(!data){alert('No tasks found for this contractor.'); return;}
+            document.getElementById('modalContractorName').textContent=data.displayName;
+            document.getElementById('modalContractorEmail').textContent=data.email;
+            const total=data.tasks.length;
+            const completed=data.tasks.filter(t=>!!t.isCompleted||(t.status||'').toLowerCase()==='completed'||t.IsCompleted===true).length;
+            const inProgress=data.tasks.filter(t=>!(t.isCompleted||false) && ['active','inprogress','in-progress'].includes((t.status||'').toLowerCase())).length;
+            const pending=total-completed-inProgress;
+            ['Total','InProgress','Pending','Completed'].forEach(id=>{
+                document.getElementById('modal'+id).textContent={Total:total,InProgress:inProgress,Pending:pending,Completed:completed}[id];
+            });
+            const tasksContainer=document.getElementById('modalTasks');
+            tasksContainer.innerHTML=data.tasks.length===0 ? '<div class="no-tasks-msg">No tasks assigned yet.</div>'
+                : data.tasks.map(t=>{
+                    const isCompleted=!!t.isCompleted||(t.status||'').toLowerCase()==='completed'||t.IsCompleted===true;
+                    const status=isCompleted?'Completed':(t.status||t.Status||'Pending');
+                    const due=formatDate(t.dueDate||t.DueDate);
+                    const projectTitle=t._projectTitle||t.projectTitle||'';
+                    return `<div class="task-row">
+                        <div class="task-info">
+                            <div class="task-title">${escapeHtml(t.taskName||t.TaskName||t.Task||'(no title)')}</div>
+                            <div class="task-meta">${escapeHtml(projectTitle)} • Due: ${escapeHtml(due)} • Status: ${escapeHtml(status)}</div>
+                        </div>
+                        <div class="task-actions"><button class="btn" onclick="viewTaskDetails('${escapeJs(t.id||t.Id||'')}')">Details</button></div>
+                    </div>`;
+                }).join('');
+            document.getElementById('contractorModal').classList.add('active');
+        }
+
+        function closeModal(){document.getElementById('contractorModal').classList.remove('active');}
+        function formatDate(s){try{const d=new Date(s);if(!isNaN(d)) return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}catch(e){} return s||'N/A';}
+        function viewTaskDetails(id){alert('Open task details for: '+id);}
+        function escapeHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');}
+        function escapeJs(s){return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"');}
+
+        document.getElementById('refreshBtn').addEventListener('click',async()=>{await loadAllContractors(); await loadProjectsAndTasks();});
+        document.getElementById('search').addEventListener('input',e=>renderContractorsGrids((e.target.value||'').trim()));
+        window.addEventListener('DOMContentLoaded',async()=>{await loadAllContractors(); await loadProjectsAndTasks();});
+    </script>
+</body>
+</html>

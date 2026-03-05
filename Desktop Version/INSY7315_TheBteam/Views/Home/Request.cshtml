@@ -1,0 +1,40 @@
+﻿@model List<INSY7315_TheBteam.Models.MaintenanceRequestModel>
+@{
+    Layout = null;
+    var role = ViewData["Role"]?.ToString();
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Requests</title>
+</head>
+<body>
+    <h2>Maintenance Requests</h2>
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div style="color:green">@TempData["SuccessMessage"]</div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div style="color:red">@TempData["ErrorMessage"]</div>
+    }
+
+    @if (role == "Client")
+    {
+        <a href="/Home/CreateRequest">Create Request</a>
+    }
+
+    <ul>
+        @foreach (var r in Model)
+        {
+            <li>
+                <strong>@r.Title</strong> - Status: @r.Status - By: @r.ClientUsername
+                <a href="/Home/RequestDetails?id=@r.Id">View</a>
+            </li>
+        }
+    </ul>
+
+    <a href="/Home/Dashboard">Back to Dashboard</a>
+</body>
+</html>

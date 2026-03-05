@@ -1,0 +1,22 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Create Request</title>
+</head>
+<body>
+    <h2>Create Maintenance Request</h2>
+    <form method="post" action="/Home/CreateRequest" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        <label>Title</label><br /><input name="Title" /><br />
+        <label>Description</label><br /><textarea name="Description"></textarea><br />
+        <label>Attach Images (optional)</label><br /><input type="file" name="files" multiple /><br />
+        <button type="submit">Submit</button>
+    </form>
+
+    <a href="/Home/Requests">Back</a>
+</body>
+</html>

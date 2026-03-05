@@ -1,0 +1,414 @@
+﻿@{
+    Layout = null;
+    var user = ViewData["User"]?.ToString();
+    var role = ViewData["Role"]?.ToString();
+    var email = ViewData["Email"]?.ToString();
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@role Dashboard - Axis IT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e7d, #4a5f9e);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #2c3e7d;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .user-info-header {
+            text-align: right;
+        }
+
+        .welcome-text {
+            font-size: 1rem;
+            font-weight: 500;
+            display: block;
+        }
+
+        .user-email {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            display: block;
+        }
+
+        .role-badge {
+            display: inline-block;
+            background: rgba(180, 160, 255, 0.3);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-top: 0.2rem;
+        }
+
+        .logout-btn {
+            background: rgba(138, 120, 234, 0.9);
+            padding: 0.7rem 1.8rem;
+            border-radius: 25px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(138, 120, 234, 0.3);
+        }
+
+            .logout-btn:hover {
+                background: rgba(120, 100, 220, 1);
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(138, 120, 234, 0.4);
+            }
+
+        /* Welcome Banner */
+        .welcome-banner {
+            background: linear-gradient(135deg, rgba(66, 134, 121, 0.4), rgba(52, 106, 96, 0.4));
+            margin: 2rem 3rem;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 1.3rem;
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Messages */
+        .message {
+            margin: 1.5rem 3rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.95rem;
+        }
+
+        .error {
+            background: rgba(255, 80, 80, 0.3);
+            border: 1px solid rgba(255, 80, 80, 0.5);
+        }
+
+        .success {
+            background: rgba(80, 255, 80, 0.3);
+            border: 1px solid rgba(80, 255, 80, 0.5);
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 0 3rem 3rem 3rem;
+        }
+
+        .dashboard-title {
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+
+            .dashboard-title h2 {
+                font-size: 2.5rem;
+                font-weight: 300;
+                margin-bottom: 0.5rem;
+            }
+
+        .dashboard-subtitle {
+            font-size: 1rem;
+            opacity: 0.85;
+            font-weight: 300;
+            margin-bottom: 2.5rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+            .stat-card:hover {
+                background: rgba(255, 255, 255, 0.12);
+                transform: translateY(-3px);
+            }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            color: rgba(200, 180, 255, 1);
+        }
+
+        .stat-label {
+            font-size: 0.95rem;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+
+        /* Role Section Headers */
+        .role-section-header {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin: 2rem 0 1.5rem 0;
+            color: rgba(200, 180, 255, 1);
+            border-bottom: 2px solid rgba(200, 180, 255, 0.3);
+            padding-bottom: 0.5rem;
+        }
+
+        /* Cards for different roles */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 2.5rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: white;
+            display: block;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+            .card:hover {
+                .background: rgba(255, 255, 255, 0.15);
+                transform: translateY(-5px);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            }
+
+            .card h3 {
+                margin: 0;
+                font-size: 1.2rem;
+                font-weight: 500;
+            }
+
+        /* Responsive */
+        @@media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+
+            .user-section {
+                flex-direction: column;
+            }
+
+            .main-content {
+                padding: 0 1rem 2rem 1rem;
+            }
+
+            .welcome-banner {
+                margin: 1rem;
+            }
+
+            .message {
+                margin: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .role-section-header {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo">AI</div>
+            <div class="logo-text">
+                <h1>Axis I.T</h1>
+                <p>Construction Management System</p>
+            </div>
+        </div>
+        <div class="user-section">
+            <div class="user-info-header">
+                <span class="welcome-text">@user</span>
+                @if (!string.IsNullOrEmpty(email))
+                {
+                    <span class="user-email">@email</span>
+                }
+                <span class="role-badge">@role</span>
+            </div>
+            <a href="/Home/Logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="message error">@TempData["ErrorMessage"]</div>
+    }
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="message success">@TempData["SuccessMessage"]</div>
+    }
+
+    <!-- Welcome Banner -->
+    <div class="welcome-banner">
+        🎉 Welcome back, @user!
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="dashboard-title">
+            <h2>Construction Management Dashboard</h2>
+            <p class="dashboard-subtitle">Dr Majoko Projects (Pty) Ltd - Integrated Property Construction and Maintenance Platform</p>
+        </div>
+
+        @if (role == "Admin")
+        {
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-number">23</div>
+                    <div class="stat-label">Active Projects</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">156</div>
+                    <div class="stat-label">Contractors</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">89</div>
+                    <div class="stat-label">Pending Tasks</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">R2.4M</div>
+                    <div class="stat-label">Total Budgets</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">342</div>
+                    <div class="stat-label">Active Tenants</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">12</div>
+                    <div class="stat-label">Maintenance Issues</div>
+                </div>
+            </div>
+
+            <!-- Project Manager Section -->
+            <h3 class="role-section-header">📊 Project Manager Functions</h3>
+            <div class="cards">
+                <a asp-controller="ProjectManager" asp-action="PMDashboard" class="card"><h3>📊 PM Dashboard</h3></a>
+                <a asp-controller="ProjectManager" asp-action="TimelineView" class="card"><h3>📅 Timeline View</h3></a>
+                <a asp-controller="ProjectManager" asp-action="ContractorTracker" class="card"><h3>👷 Contractor Tracker</h3></a>
+                <a href="#" class="card"><h3>📁 File Review Screen</h3></a>
+            </div>
+
+            <!-- Contractor Section -->
+            <h3 class="role-section-header">🔧 Contractor Functions</h3>
+            <div class="cards">
+                <a asp-controller="Contractor" asp-action="TaskList" class="card"><h3>✅ Task List</h3></a>
+                <a asp-controller="Contractor" asp-action="UploadCenter" class="card"><h3>📤 Upload Center</h3></a>
+                <a asp-controller="Contractor" asp-action="CompletionReport" class="card"><h3>📋 Completion Report Form</h3></a>
+            </div>
+
+            <!-- Client Section -->
+            <h3 class="role-section-header">🏠 Client Functions</h3>
+            <div class="cards">
+                <a href="#" class="card"><h3>🏠 Client Dashboard</h3></a>
+                <a href="/ClientRequest" class="card"><h3>📝 Request Form</h3></a>
+                <a href="/Client/Notifications" class="card"><h3>🔔 Notification Panel</h3></a>
+            </div>
+        }
+        else
+        {
+            <div class="cards">
+                @switch (role)
+                {
+                    case "Project Manager":
+                        <a asp-controller="ProjectManager" asp-action="PMDashboard" class="card"><h3>📊 PM Dashboard</h3></a>
+                        <a asp-controller="ProjectManager" asp-action="TimelineView" class="card"><h3>📅 Timeline View</h3></a>
+                        <a asp-controller="ProjectManager" asp-action="ContractorTracker" class="card"><h3>👷 Contractor Tracker</h3></a>
+                        <a href="#" class="card"><h3>📁 File Review Screen</h3></a>
+                        break;
+                    case "Contractor":
+                        <a asp-controller="Contractor" asp-action="TaskList" class="card"><h3>✅ Task List</h3></a>
+                        <a asp-controller="Contractor" asp-action="UploadCenter" class="card"><h3>📤 Upload Center</h3></a>
+                        <a asp-controller="Contractor" asp-action="CompletionReport" class="card"><h3>📋 Completion Report Form</h3></a>
+                        break;
+                    case "Client":
+                        <a href="#" class="card"><h3>🏠 Client Dashboard</h3></a>
+                        <a href="/ClientRequest" class="card"><h3>📝 Request Form</h3></a>
+                       <a href="/Client/Notifications" class="card"><h3>🔔 Notification Panel</h3></a>
+                        break;
+                    default:
+                        <div class="card"><h3>❓ Unknown Role</h3></div>
+                        break;
+                }
+            </div>
+        }
+    </div>
+</body>
+</html>

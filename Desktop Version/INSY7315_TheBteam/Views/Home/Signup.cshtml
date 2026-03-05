@@ -1,0 +1,403 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Axis IT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #6a4c93, #2a5298);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 2.5rem;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        h2 {
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .step {
+            display: none;
+        }
+
+            .step.active {
+                display: block;
+            }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: rgba(255,255,255,0.7);
+        }
+
+            .divider::before,
+            .divider::after {
+                content: '';
+                flex: 1;
+                height: 1px;
+                background: rgba(255,255,255,0.3);
+            }
+
+            .divider span {
+                padding: 0 1rem;
+                font-size: 0.9rem;
+            }
+
+        input, select, button {
+            width: 100%;
+            margin: 0.5rem 0;
+            padding: 0.8rem;
+            border-radius: 8px;
+            border: none;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input, select {
+            background: rgba(255,255,255,0.2);
+            color: white;
+        }
+
+            input::placeholder {
+                color: rgba(255,255,255,0.6);
+            }
+
+            input:focus, select:focus {
+                outline: none;
+                background: rgba(255,255,255,0.3);
+            }
+
+            select option {
+                background: #2a5298;
+                color: white;
+            }
+
+        button {
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-google {
+            background: white;
+            color: #444;
+        }
+
+            .btn-google:hover {
+                background: #f8f8f8;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            }
+
+        .btn-primary {
+            background: #764ba2;
+            color: white;
+        }
+
+            .btn-primary:hover {
+                background: #6a4c93;
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(118, 75, 162, 0.4);
+            }
+
+            .btn-primary:disabled,
+            .btn-google:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+                transform: none;
+            }
+
+        a {
+            color: white;
+            text-decoration: none;
+            font-size: 0.95rem;
+            display: inline-block;
+            margin-top: 1rem;
+            transition: opacity 0.3s;
+        }
+
+            a:hover {
+                opacity: 0.8;
+            }
+
+        .message {
+            padding: 0.8rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .error {
+            background: rgba(255, 80, 80, 0.3);
+            border: 1px solid rgba(255, 80, 80, 0.5);
+        }
+
+        .success {
+            background: rgba(80, 255, 80, 0.3);
+            border: 1px solid rgba(80, 255, 80, 0.5);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @@keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .role-info {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.7);
+            margin-top: 0.5rem;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>✨ Create Account</h2>
+
+        <div id="messageBox" class="hidden"></div>
+
+        <!-- Step 1: Sign Up Method -->
+        <div id="step1" class="step active">
+            <button id="googleSignUp" class="btn-google">
+                <svg width="20" height="20" viewBox="0 0 48 48">
+                    <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+                    <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+                    <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
+                    <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+                </svg>
+                Sign up with Google
+            </button>
+
+            <div class="divider"><span>or</span></div>
+
+            <form id="emailSignUpForm">
+                <input type="email" id="email" placeholder="Email" required />
+                <input type="password" id="password" placeholder="Password (min 8 characters)" required minlength="8" />
+                <input type="password" id="confirmPassword" placeholder="Confirm Password" required />
+                <button type="submit" id="emailSignUp" class="btn-primary">
+                    <span id="emailBtnText">Sign up with Email</span>
+                    <div id="emailSpinner" class="spinner hidden"></div>
+                </button>
+            </form>
+
+            <a href="/Home/Index">Already have an account? Login</a>
+        </div>
+
+        <!-- Step 2: Role Selection -->
+        <div id="step2" class="step">
+            <p style="margin-bottom: 1.5rem;">Select your role to complete registration</p>
+            <form id="roleForm">
+                <select id="role" name="role" required>
+                    <option value="">Select Your Role</option>
+                    <option value="Project Manager">Project Manager</option>
+                    <option value="Contractor">Contractor</option>
+                    <option value="Client">Client</option>
+                </select>
+                <div class="role-info">
+                    <strong>Project Manager:</strong> Oversee projects and manage teams<br>
+                    <strong>Contractor:</strong> Execute tasks and upload deliverables<br>
+                    <strong>Client:</strong> View progress and approve work
+                </div>
+                <button type="submit" id="roleSubmit" class="btn-primary">
+                    <span id="roleBtnText">Complete Registration</span>
+                    <div id="roleSpinner" class="spinner hidden"></div>
+                </button>
+            </form>
+        </div>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="message error">@TempData["ErrorMessage"]</div>
+        }
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js';
+        import { getAuth, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, updateProfile } from 'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js';
+
+        const firebaseConfig = @Html.Raw(ViewBag.FirebaseConfig);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        let currentUser = null;
+        let currentIdToken = null;
+
+        const messageBox = document.getElementById('messageBox');
+        const step1 = document.getElementById('step1');
+        const step2 = document.getElementById('step2');
+        const googleBtn = document.getElementById('googleSignUp');
+        const emailForm = document.getElementById('emailSignUpForm');
+        const emailBtn = document.getElementById('emailSignUp');
+        const emailBtnText = document.getElementById('emailBtnText');
+        const emailSpinner = document.getElementById('emailSpinner');
+        const roleForm = document.getElementById('roleForm');
+        const roleBtn = document.getElementById('roleSubmit');
+        const roleBtnText = document.getElementById('roleBtnText');
+        const roleSpinner = document.getElementById('roleSpinner');
+
+        function showMessage(message, isError = false) {
+            messageBox.textContent = message;
+            messageBox.className = isError ? 'message error' : 'message success';
+            messageBox.classList.remove('hidden');
+        }
+
+        function setLoading(button, spinner, text, isLoading) {
+            button.disabled = isLoading;
+            if (spinner) spinner.classList.toggle('hidden', !isLoading);
+            if (text) text.classList.toggle('hidden', isLoading);
+        }
+
+        function showStep2() {
+            step1.classList.remove('active');
+            step2.classList.add('active');
+        }
+
+        async function handleAuthSuccess(user) {
+            currentUser = user;
+            currentIdToken = await user.getIdToken();
+            showStep2();
+        }
+
+        // Google Sign-Up
+        googleBtn.addEventListener('click', async () => {
+            setLoading(googleBtn, null, null, true);
+            try {
+                const provider = new GoogleAuthProvider();
+                const result = await signInWithPopup(auth, provider);
+                await handleAuthSuccess(result.user);
+            } catch (error) {
+                setLoading(googleBtn, null, null, false);
+                if (error.code !== 'auth/popup-closed-by-user') {
+                    showMessage('Google sign-up failed: ' + error.message, true);
+                }
+            }
+        });
+
+        // Email/Password Sign-Up
+        emailForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setLoading(emailBtn, emailSpinner, emailBtnText, true);
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (password !== confirmPassword) {
+                setLoading(emailBtn, emailSpinner, emailBtnText, false);
+                showMessage('Passwords do not match!', true);
+                return;
+            }
+
+            if (password.length < 8) {
+                setLoading(emailBtn, emailSpinner, emailBtnText, false);
+                showMessage('Password must be at least 8 characters long!', true);
+                return;
+            }
+
+            try {
+                const result = await createUserWithEmailAndPassword(auth, email, password);
+                await handleAuthSuccess(result.user);
+            } catch (error) {
+                setLoading(emailBtn, emailSpinner, emailBtnText, false);
+                let errorMessage = 'Sign up failed. ';
+                if (error.code === 'auth/email-already-in-use') {
+                    errorMessage += 'This email is already registered.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessage += 'Invalid email address.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage += 'Password is too weak.';
+                } else {
+                    errorMessage += error.message;
+                }
+                showMessage(errorMessage, true);
+            }
+        });
+
+        // Role Selection
+        roleForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setLoading(roleBtn, roleSpinner, roleBtnText, true);
+
+            const role = document.getElementById('role').value;
+
+            if (!role) {
+                setLoading(roleBtn, roleSpinner, roleBtnText, false);
+                showMessage('Please select a role!', true);
+                return;
+            }
+
+            try {
+                const response = await fetch('/Home/UpdateRole', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        idToken: currentIdToken,
+                        role: role
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage(data.message);
+                    setTimeout(() => window.location.href = data.redirectUrl, 1500);
+                } else {
+                    setLoading(roleBtn, roleSpinner, roleBtnText, false);
+                    showMessage(data.message, true);
+                }
+            } catch (error) {
+                setLoading(roleBtn, roleSpinner, roleBtnText, false);
+                showMessage('Network error. Please try again.', true);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,153 @@
+﻿@{
+    Layout = null;
+    var user = ViewData["User"]?.ToString();
+    var role = ViewData["Role"]?.ToString();
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Completion Report</title>
+    <link rel="stylesheet" href="~/css/CompletionReport.css" />
+</head>
+<body>
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo">AI</div>
+            <div class="logo-text">
+                <h1>Axis I.T</h1>
+                <p>Construction Management System</p>
+            </div>
+        </div>
+        <div class="user-section">
+            <span class="welcome-text">Welcome, @user!</span>
+            <a href="/Home/Dashboard" class="back-btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <h1 class="page-title">Completion Report Form</h1>
+        <p class="page-subtitle">Submit your task completion details</p>
+
+        <div class="form-container">
+            <div class="info-box">
+                <strong>ℹ️ Important:</strong> Please fill out all required fields to submit your completion report.
+            </div>
+
+            <form id="completionForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="taskName">Task Name *</label>
+                        <input type="text" id="taskName" name="TaskName" required placeholder="e.g., Electrical Wiring Installation" />
+                    </div>
+                    <div class="form-group">
+                        <label for="completionDate">Completion Date *</label>
+                        <input type="date" id="completionDate" name="CompletionDate" required />
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="projectName">Project Name *</label>
+                        <input type="text" id="projectName" name="ProjectName" required placeholder="e.g., Building A Construction" />
+                    </div>
+                    <div class="form-group">
+                        <label for="hoursWorked">Hours Worked *</label>
+                        <input type="text" id="hoursWorked" name="HoursWorked" required placeholder="e.g., 8.5" />
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="workDescription">Work Description *</label>
+                    <textarea id="workDescription" name="WorkDescription" required placeholder="Provide a detailed description of the work completed..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="challenges">Challenges Encountered</label>
+                    <textarea id="challenges" name="Challenges" placeholder="Describe any challenges faced during the task..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="materialsUsed">Materials Used</label>
+                    <textarea id="materialsUsed" name="MaterialsUsed" placeholder="List materials and quantities used..."></textarea>
+                </div>
+
+                <!-- ✅ Updated Quality Check Section -->
+                <div class="form-group">
+                    <label for="safetyCheck">Safety Standards Met *</label>
+                    <select id="safetyCheck" name="SafetyCheck" required>
+                        <option value="">Select...</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="qualityCheck">Quality Verified *</label>
+                    <select id="qualityCheck" name="QualityCheck" required>
+                        <option value="">Select...</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="inspectionCheck">Ready for Inspection *</label>
+                    <select id="inspectionCheck" name="InspectionCheck" required>
+                        <option value="">Select...</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="additionalNotes">Additional Notes</label>
+                    <textarea id="additionalNotes" name="AdditionalNotes" placeholder="Any other information to share..."></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn">Submit Completion Report</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('completionForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const formData = {
+                TaskName: document.getElementById('taskName').value,
+                CompletionDate: new Date(document.getElementById('completionDate').value).toISOString(),
+                ProjectName: document.getElementById('projectName').value,
+                HoursWorked: parseFloat(document.getElementById('hoursWorked').value) || 0,
+                WorkDescription: document.getElementById('workDescription').value,
+                Challenges: document.getElementById('challenges').value,
+                MaterialsUsed: document.getElementById('materialsUsed').value,
+                SafetyCheck: document.getElementById('safetyCheck').value === "true",
+                QualityCheck: document.getElementById('qualityCheck').value === "true",
+                InspectionCheck: document.getElementById('inspectionCheck').value === "true",
+                AdditionalNotes: document.getElementById('additionalNotes').value,
+                SubmittedBy: "@user"
+            };
+
+            try {
+                const response = await fetch('/CompletionReport/SubmitReport', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('✅ ' + result.message);
+                    document.getElementById('completionForm').reset();
+                } else {
+                    alert('❌ ' + result.message);
+                }
+            } catch (err) {
+                alert('❌ Error submitting report: ' + err.message);
+            }
+        });
+    </script>
+</body>
+</html>

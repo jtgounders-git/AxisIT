@@ -1,0 +1,1308 @@
+﻿@model List<INSY7315_TheBteam.Models.ProjectModel>
+@{
+    Layout = null;
+    var user = ViewData["User"]?.ToString() ?? "Project Manager";
+    var role = ViewData["Role"]?.ToString() ?? "Project Manager";
+    var email = ViewData["Email"]?.ToString() ?? "";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Dashboard - Axis IT</title>
+
+    <!-- separated CSS file -->
+    <link rel="stylesheet" href="~/css/pmdashboard.css" />
+</head>
+<!-- CHANGED: use the logged-in user's email for filtering -->
+<body data-user="@email" data-role="@role">
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo">AI</div>
+            <div class="logo-text">
+                <h1>Axis I.T</h1>
+                <p>Construction Management System</p>
+            </div>
+        </div>
+        <div class="nav-actions">
+            <a href="/Home/Dashboard" class="back-btn">← Back to Dashboard</a>
+            <!-- ADDED: Incoming Requests button (no other changes) -->
+            <button class="back-btn" onclick="incomingRequests()">Incoming Requests</button>
+            <a href="/Home/Logout" class="logout-btn">Logout</a>
+        </div>
+    </div>
+
+    <div class="dashboard-header">
+        <h2>📊 Project Manager Dashboard</h2>
+        <p>Track construction and maintenance progress, approve documents, and assign tasks</p>
+    </div>
+
+    <div class="main-content">
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon">🏗️</div>
+                <div class="stat-number">0</div>
+                <div class="stat-label">Active Projects</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-number">0</div>
+                <div class="stat-label">On Track</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-number">0</div>
+                <div class="stat-label">Needs Attention</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏰</div>
+                <div class="stat-number">0</div>
+                <div class="stat-label">Delayed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">💰</div>
+                <div class="stat-number">R0</div>
+                <div class="stat-label">Total Budget</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📄</div>
+                <div class="stat-number">15</div>
+                <div class="stat-label">Pending Approvals</div>
+            </div>
+        </div>
+
+        <h3 class="section-title">Construction Projects</h3>
+
+        <div class="filters">
+            <div class="filter-group">
+                <label>Status</label>
+                <select id="statusFilter">
+                    <option value="all">All Status</option>
+                    <option value="active">Active</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="delayed">Delayed</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Phase</label>
+                <select id="phaseFilter">
+                    <option value="all">All Phases</option>
+                    <option value="planning">Planning</option>
+                    <option value="foundation">Foundation</option>
+                    <option value="structure">Structure</option>
+                    <option value="finishing">Finishing</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Budget Range</label>
+                <select id="budgetFilter">
+                    <option value="all">All Budgets</option>
+                    <option value="low">< R100k</option>
+                    <option value="medium">R100k - R500k</option>
+                    <option value="high">> R500k</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" id="searchInput" placeholder="Search projects...">
+            </div>
+            <button class="btn-primary" onclick="applyFilters()">Apply Filters</button>
+            <button class="btn-primary" onclick="openCreateModal()">+ New Project</button>
+        </div>
+
+        <div class="projects-grid" id="projectsGrid">
+            <div class="loading">Loading projects...</div>
+        </div>
+    </div>
+
+    <!-- Create/Edit Project Modal -->
+    <div class="modal" id="projectModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">Create New Project</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <form onsubmit="saveProject(event)">
+                <div class="form-group">
+                    <label>Project Name *</label>
+                    <input type="text" id="projectName" required>
+                </div>
+                <div class="form-group">
+                    <label>Project Code *</label>
+                    <input type="text" id="projectCode" required>
+                </div>
+                <div class="form-group">
+                    <label>Client *</label>
+                    <input type="text" id="projectClient" required>
+                </div>
+                <div class="form-group">
+                    <label>Contractor</label>
+                    <!-- changed to select populated from GetContractors -->
+                    <select id="projectContractor">
+                        <option value="">Select Contractor</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Budget (R) *</label>
+                    <input type="number" id="projectBudget" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Start Date *</label>
+                    <input type="date" id="projectStartDate" required>
+                </div>
+                <div class="form-group">
+                    <label>Current Phase *</label>
+                    <select id="projectPhase" required>
+                        <option value="Planning">Planning</option>
+                        <option value="Foundation">Foundation</option>
+                        <option value="Structure">Structure</option>
+                        <option value="Finishing">Finishing</option>
+                        <option value="Inspection">Inspection</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="projectDescription"></textarea>
+                </div>
+                <button type="submit" class="btn-submit">Save Project</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Progress Details Modal -->
+    <div class="modal" id="progressModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="progressModalTitle">Progress Details</h3>
+                <button class="close-btn" onclick="closeProgressModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Project ID</label>
+                <div id="progressProjectId" style="font-weight: 500; padding: 0.5rem 0;"></div>
+            </div>
+            <div class="form-group">
+                <label>Project Name</label>
+                <div id="progressProjectName" style="font-weight: 500; padding: 0.5rem 0;"></div>
+            </div>
+            <div class="form-group">
+                <label>Overall Progress</label>
+                <div id="progressOverall" style="font-size: 2rem; color: rgba(200, 180, 255, 1); padding: 0.5rem 0;"></div>
+            </div>
+            <div class="form-group">
+                <label>Progress by Phase</label>
+                <div id="progressPhases" style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents Modal -->
+    <div class="modal" id="documentsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="docsModalTitle">Documents</h3>
+                <button class="close-btn" onclick="closeDocsModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Project ID</label>
+                <div id="docsProjectId" style="font-weight: 500; padding: 0.5rem 0;"></div>
+            </div>
+            <div id="documentsList" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+        </div>
+    </div>
+
+    <!-- Tasks Modal -->
+    <div class="modal" id="tasksModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="tasksModalTitle">Assign Tasks</h3>
+                <button class="close-btn" onclick="closeTasksModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Project ID</label>
+                <div id="tasksProjectId" style="font-weight: 500; padding: 0.5rem 0;"></div>
+            </div>
+            <button class="btn-primary" onclick="addNewTask()" style="margin-bottom: 1rem; width: 100%;">+ Add New Task</button>
+            <div id="tasksList" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+        </div>
+    </div>
+
+    <!-- Resources Modal -->
+    <div class="modal" id="resourcesModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="resourcesModalTitle">Resource Allocation</h3>
+                <button class="close-btn" onclick="closeResourcesModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>Project ID</label>
+                <div id="resourcesProjectId" style="font-weight: 500; padding: 0.5rem 0;"></div>
+            </div>
+            <button class="btn-primary" onclick="addNewResource()" style="margin-bottom: 1rem; width: 100%;">+ Add New Resource</button>
+            <div id="resourcesList" style="display: flex; flex-direction: column; gap: 1rem;"></div>
+        </div>
+    </div>
+
+    <!-- Incoming Requests Modal -->
+    <div class="modal" id="requestsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Incoming Project Requests</h3>
+                <button class="close-btn" onclick="closeRequestsModal()">&times;</button>
+            </div>
+            <div id="requestsList" style="display: flex; flex-direction: column; gap: 1rem; max-height: 70vh; overflow-y: auto;">
+                <!-- Requests will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Accept Request / Create Project Modal -->
+    <div class="modal" id="acceptRequestModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Project from Request</h3>
+                <button class="close-btn" onclick="closeAcceptModal()">&times;</button>
+            </div>
+            <form onsubmit="submitProjectFromRequest(event)">
+                <input type="hidden" id="requestIdHidden">
+
+                <div class="form-group">
+                    <label>Project Code *</label>
+                    <input type="text" id="acceptProjectCode" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Project Title *</label>
+                    <input type="text" id="acceptProjectTitle" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Client Name *</label>
+                    <input type="text" id="acceptClientName" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Project Type *</label>
+                    <input type="text" id="acceptProjectType" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Site Address *</label>
+                    <input type="text" id="acceptSiteAddress" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Assign Contractor *</label>
+                    <select id="acceptContractor" required>
+                        <option value="">Select Contractor</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Budget (R) *</label>
+                    <input type="number" id="acceptBudget" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Start Date *</label>
+                    <input type="date" id="acceptStartDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Current Phase *</label>
+                    <select id="acceptPhase" required>
+                        <option value="Planning">Planning</option>
+                        <option value="Foundation">Foundation</option>
+                        <option value="Structure">Structure</option>
+                        <option value="Finishing">Finishing</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Description *</label>
+                    <textarea id="acceptDescription" required></textarea>
+                </div>
+
+                <button type="submit" class="btn-submit">Create Project</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let projects = [];
+        let contractors = [];
+        let currentRequests = [];
+
+        const currentUser = (document.body.dataset.user || '').toString();
+        const currentRole = (document.body.dataset.role || '').toString();
+
+        // Load projects from server on page load
+        async function loadProjects() {
+            try {
+                const response = await fetch('/ProjectManager/GetProjects');
+                const result = await response.json();
+
+                if (result.success) {
+                    projects = result.data || [];
+
+                    // FILTER: if not admin, show only projects where projectManager matches currentUser
+                    const isAdmin = (currentRole || '').toLowerCase() === 'admin';
+                    let projectsToRender = projects;
+                    if (!isAdmin) {
+                        projectsToRender = projects.filter(p => ((p.projectManager || '')).toString().toLowerCase() === (currentUser || '').toLowerCase());
+                    }
+
+                    renderProjects(projectsToRender);
+                    loadStatistics();
+                } else {
+                    document.getElementById('projectsGrid').innerHTML =
+                        '<div style="text-align: center; padding: 2rem; opacity: 0.7;">Error loading projects: ' + result.message + '</div>';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('projectsGrid').innerHTML =
+                    '<div style="text-align: center; padding: 2rem; opacity: 0.7;">Error loading projects. Please refresh the page.</div>';
+            }
+        }
+
+        // Load contractors from server
+        async function loadContractors() {
+            try {
+                const resp = await fetch('/ProjectManager/GetContractors');
+                const res = await resp.json();
+                if (res.success) {
+                    contractors = res.data || [];
+                } else {
+                    contractors = [];
+                }
+            } catch (err) {
+                console.error('Error loading contractors:', err);
+                contractors = [];
+            }
+            populateContractorSelects();
+        }
+
+        // Populate both contractor selects (create modal + accept modal)
+        function populateContractorSelects() {
+            // projectContractor (create modal)
+            const projectSelect = document.getElementById('projectContractor');
+            if (projectSelect) {
+                projectSelect.innerHTML = '<option value="">Select Contractor</option>';
+                contractors.forEach(c => {
+                    const opt = document.createElement('option');
+                    // keep value as displayName (existing convention) but if you prefer uid use c.uid
+                    opt.value = c.displayName;
+                    opt.textContent = `${c.displayName} (${c.email})`;
+                    projectSelect.appendChild(opt);
+                });
+            }
+
+            // acceptContractor (accept request modal)
+            const acceptSelect = document.getElementById('acceptContractor');
+            if (acceptSelect) {
+                acceptSelect.innerHTML = '<option value="">Select Contractor</option>';
+                contractors.forEach(c => {
+                    const option = document.createElement('option');
+                    option.value = c.displayName;
+                    option.textContent = `${c.displayName} (${c.email})`;
+                    acceptSelect.appendChild(option);
+                });
+            }
+        }
+
+        // Load statistics
+        async function loadStatistics() {
+            try {
+                const response = await fetch('/ProjectManager/GetStatistics');
+                const result = await response.json();
+
+                if (result.success) {
+                    updateStatistics(result.data);
+                }
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+            }
+        }
+
+        // Update statistics display
+        function updateStatistics(stats) {
+            const statCards = document.querySelectorAll('.stat-card .stat-number');
+            statCards[0].textContent = stats.activeProjects;
+            statCards[1].textContent = stats.onTrack;
+            statCards[2].textContent = stats.needsAttention;
+            statCards[3].textContent = stats.delayed;
+            statCards[4].textContent = 'R' + (stats.totalBudget / 1000000).toFixed(1) + 'M';
+            statCards[5].textContent = stats.pendingApprovals;
+        }
+
+        function renderProjects(projectsToRender = projects) {
+            const grid = document.getElementById('projectsGrid');
+            grid.innerHTML = '';
+
+            if (!projectsToRender || projectsToRender.length === 0) {
+                grid.innerHTML = '<div style="text-align: center; padding: 2rem; opacity: 0.7;">No projects found. Click "+ New Project" to create one.</div>';
+                return;
+            }
+
+            projectsToRender.forEach(project => {
+                const startDate = new Date(project.startDate);
+                const deadline = project.detailedPhases && project.detailedPhases.length > 0
+                    ? new Date(Math.max(...project.detailedPhases.map(p => new Date(p.deadline))))
+                    : new Date(startDate.getTime() + (200 * 24 * 60 * 60 * 1000));
+
+                const daysRemaining = Math.ceil((deadline - new Date()) / (1000 * 60 * 60 * 24));
+                const budgetUsed = project.totalBudget > 0 ? ((project.spent / project.totalBudget) * 100).toFixed(1) : 0;
+                const status = getProjectStatus(project);
+
+                // Use the progress from the project model (which gets updated by backend)
+                const displayProgress = project.progress || 0;
+
+                const card = document.createElement('div');
+                card.className = 'project-card';
+                card.innerHTML = `
+                    <div class="project-header">
+                        <div>
+                            <div class="project-title">${project.title || 'Untitled Project'}</div>
+                            <div class="project-id">${project.projectCode || project.id}</div>
+                        </div>
+                        <span class="status-badge status-${status}">${status.toUpperCase()}</span>
+                    </div>
+
+                    <div class="project-info">
+                        <div class="info-item">
+                            <span class="info-label">Client</span>
+                            <span class="info-value">${project.client || 'N/A'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Contractor</span>
+                            <span class="info-value">${project.contractor || 'Not Assigned'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Budget</span>
+                            <span class="info-value">R${(project.totalBudget || 0).toLocaleString()}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Spent</span>
+                            <span class="info-value">R${(project.spent || 0).toLocaleString()} (${budgetUsed}%)</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Deadline</span>
+                            <span class="info-value">${deadline.toLocaleDateString()}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Days Remaining</span>
+                            <span class="info-value" style="color: ${daysRemaining < 30 ? '#ff6b6b' : '#6bff6b'}">${daysRemaining} days</span>
+                        </div>
+                    </div>
+
+                    <div class="progress-section">
+                        <div class="progress-header">
+                            <span>Overall Progress</span>
+                            <span>${displayProgress}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${displayProgress}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="info-item" style="margin-bottom: 1rem;">
+                        <span class="info-label">Current Phase</span>
+                        <span class="info-value">${project.currentPhase || 'Not Set'}</span>
+                    </div>
+
+                    <div class="phases">
+                        ${(project.phases || []).map(phase => `<span class="phase-chip">${phase}</span>`).join('')}
+                    </div>
+
+                    <div class="project-actions">
+                        <button class="btn-action" onclick="viewProgress('${project.id}')">📊 View Progress</button>
+                        <button class="btn-action" onclick="approveDocuments('${project.id}')">📄 Documents</button>
+                        <button class="btn-action" onclick="assignTasks('${project.id}')">✅ Assign Tasks</button>
+                        <button class="btn-action" onclick="allocateResources('${project.id}')">🔧 Resources</button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function getProjectStatus(project) {
+            if (project.isCompleted) return 'completed';
+
+            const totalDays = (new Date() - new Date(project.startDate)) / (1000 * 60 * 60 * 24);
+            const expectedProgress = Math.min(100, Math.max(0, (totalDays / 200) * 100));
+            const difference = project.progress - expectedProgress;
+
+            if (difference < -15) return 'delayed';
+            if (difference < 0) return 'pending';
+            return 'active';
+        }
+
+        async function applyFilters() {
+            const status = document.getElementById('statusFilter').value;
+            const phase = document.getElementById('phaseFilter').value;
+            const budget = document.getElementById('budgetFilter').value;
+            const search = document.getElementById('searchInput').value;
+
+            try {
+                const response = await fetch(`/ProjectManager/GetProjects?status=${status}&phase=${phase}&budget=${budget}&search=${encodeURIComponent(search)}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    projects = result.data || [];
+
+                    // respect same visibility rules
+                    const isAdmin = (currentRole || '').toLowerCase() === 'admin';
+                    let projectsToRender = projects;
+                    if (!isAdmin) {
+                        projectsToRender = projects.filter(p => ((p.projectManager || '')).toString().toLowerCase() === (currentUser || '').toLowerCase());
+                    }
+
+                    renderProjects(projectsToRender);
+                } else {
+                    alert('Error filtering projects: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error filtering projects:', error);
+                alert('Error filtering projects. Please try again.');
+            }
+        }
+
+        function openCreateModal() {
+            document.getElementById('modalTitle').textContent = 'Create New Project';
+            document.getElementById('projectName').value = '';
+            document.getElementById('projectCode').value = '';
+            document.getElementById('projectClient').value = '';
+            document.getElementById('projectBudget').value = '';
+            document.getElementById('projectStartDate').value = new Date().toISOString().split('T')[0];
+            document.getElementById('projectPhase').value = 'Planning';
+            document.getElementById('projectDescription').value = '';
+
+            // populate contractor select (in case contractors loaded earlier)
+            populateContractorSelects();
+
+            document.getElementById('projectModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('projectModal').classList.remove('active');
+        }
+
+        async function saveProject(event) {
+            event.preventDefault();
+
+            // convert selected start date to full ISO UTC (so server parse will create a Utc DateTime)
+            const startDateValue = document.getElementById('projectStartDate').value;
+            const startDateIso = startDateValue ? new Date(startDateValue + 'T00:00:00Z').toISOString() : new Date().toISOString();
+
+            const projectData = {
+                title: document.getElementById('projectName').value,
+                projectCode: document.getElementById('projectCode').value,
+                client: document.getElementById('projectClient').value,
+                contractor: document.getElementById('projectContractor').value,
+                totalBudget: parseFloat(document.getElementById('projectBudget').value) || 0,
+                startDate: startDateIso,
+                currentPhase: document.getElementById('projectPhase').value,
+                phases: [document.getElementById('projectPhase').value],
+                progress: 0,
+                spent: 0,
+                detailedPhases: [],
+                isCompleted: false
+            };
+
+            try {
+                const response = await fetch('/ProjectManager/AddProject', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(projectData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    closeModal();
+                    loadProjects();
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error saving project:', error);
+                alert('Error saving project. Please try again.');
+            }
+        }
+
+        // ------------------------------
+        // View Progress (wired to backend, now shows tasks)
+        // ------------------------------
+        async function viewProgress(id) {
+            const project = projects.find(p => p.id === id);
+            if (!project) return;
+
+            document.getElementById('progressModalTitle').textContent = `Progress Details - ${project.title}`;
+            document.getElementById('progressProjectId').textContent = project.projectCode || project.id;
+            document.getElementById('progressProjectName').textContent = project.title;
+
+            // Fetch tasks to calculate accurate progress
+            try {
+                const tasksResp = await fetch(`/TaskManagement/GetProjectTasks?projectId=${encodeURIComponent(id)}`);
+                const tasksRes = await tasksResp.json();
+
+                let tasks = [];
+                let overallProgress = project.progress || 0;
+
+                if (tasksRes.success && tasksRes.data) {
+                    tasks = tasksRes.data;
+
+                    // Calculate progress from tasks
+                    if (tasks.length > 0) {
+                        const completedTasks = tasks.filter(t => t.isCompleted || t.status === 'completed').length;
+                        overallProgress = Math.round((completedTasks / tasks.length) * 100);
+                    }
+                }
+
+                document.getElementById('progressOverall').textContent = `${overallProgress}%`;
+
+                const phasesList = document.getElementById('progressPhases');
+                const phases = project.phases || ['Planning', 'Foundation', 'Structure', 'Finishing'];
+
+                // Build phases section with progress bar
+                let phasesHTML = phases.map((phase, index) => {
+                    const phaseProgress = Math.min(100, Math.max(0, (overallProgress - (index * Math.floor(100 / phases.length)))));
+                    return `
+                        <div class="phase-progress-item">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                <span>${phase}</span>
+                                <span>${phaseProgress.toFixed(0)}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${phaseProgress}%"></div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Add tasks section
+                if (tasks.length > 0) {
+                    phasesHTML += `
+                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1);">
+                            <h4 style="margin-bottom: 1rem; font-size: 1.1rem;">Tasks (${tasks.filter(t => t.isCompleted).length}/${tasks.length} completed)</h4>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                ${tasks.map(t => {
+                                    const status = t.status || (t.isCompleted ? 'completed' : 'pending');
+                                    const dueDate = t.dueDate ? new Date(t.dueDate).toLocaleDateString() : 'N/A';
+                                    return `
+                                        <div style="padding: 0.75rem; background: rgba(255,255,255,0.05); border-radius: 8px; border-left: 3px solid ${status === 'completed' ? '#6bff6b' : '#ff6b6b'};">
+                                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                                <div style="flex: 1;">
+                                                    <div style="font-weight: 500; margin-bottom: 0.25rem;">${t.taskName}</div>
+                                                    <div style="font-size: 0.85rem; opacity: 0.7;">
+                                                        ${t.assignedContractor || 'Unassigned'} • Due: ${dueDate}
+                                                    </div>
+                                                </div>
+                                                <span class="status-badge status-${status}" style="font-size: 0.75rem;">${status.toUpperCase()}</span>
+                                            </div>
+                                            ${t.description ? `<div style="font-size: 0.85rem; opacity: 0.8; margin-top: 0.5rem;">${t.description}</div>` : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    phasesHTML += `
+                        <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; opacity: 0.7;">
+                            No tasks created yet
+                        </div>
+                    `;
+                }
+
+                phasesList.innerHTML = phasesHTML;
+                document.getElementById('progressModal').classList.add('active');
+            } catch (e) {
+                console.warn('Could not fetch detailed progress', e);
+                // Fallback to basic display
+                document.getElementById('progressOverall').textContent = `${project.progress}%`;
+                const phasesList = document.getElementById('progressPhases');
+                phasesList.innerHTML = '<div style="text-align:center; padding:1rem; opacity:0.7;">Error loading detailed progress</div>';
+                document.getElementById('progressModal').classList.add('active');
+            }
+        }
+
+        // ------------------------------
+        // Documents (keeps sample list but opens modal reliably)
+        // ------------------------------
+        function approveDocuments(id) {
+            const project = projects.find(p => p.id === id);
+            if (!project) return;
+
+            document.getElementById('docsModalTitle').textContent = `Documents - ${project.title}`;
+            document.getElementById('docsProjectId').textContent = project.projectCode || project.id;
+
+            const docsList = document.getElementById('documentsList');
+            // keep your sample documents as-is (no documents endpoint provided)
+            const sampleDocs = [
+                { name: 'Building Plans.pdf', status: 'pending', date: '2024-10-10', size: '2.4 MB' },
+                { name: 'Structural Report.pdf', status: 'approved', date: '2024-10-08', size: '1.8 MB' },
+                { name: 'Material Specifications.xlsx', status: 'pending', date: '2024-10-12', size: '340 KB' },
+                { name: 'Safety Compliance.pdf', status: 'approved', date: '2024-10-05', size: '1.2 MB' },
+                { name: 'Progress Photos.zip', status: 'pending', date: '2024-10-14', size: '15.6 MB' }
+            ];
+
+            docsList.innerHTML = sampleDocs.map((doc, index) => `
+                <div class="document-item">
+                    <div style="flex: 1;">
+                        <div style="font-weight: 500; margin-bottom: 0.3rem;">📄 ${doc.name}</div>
+                        <div style="font-size: 0.85rem; opacity: 0.7;">
+                            ${doc.size} • Uploaded ${doc.date}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                        <span class="status-badge status-${doc.status === 'approved' ? 'completed' : 'pending'}">
+                            ${doc.status.toUpperCase()}
+                        </span>
+                        ${doc.status === 'pending' ? `
+                            <button class="btn-action" onclick="approveDocument(${index})">✓ Approve</button>
+                            <button class="btn-action" onclick="rejectDocument(${index})">✗ Reject</button>
+                        ` : ''}
+                        <button class="btn-action">👁 View</button>
+                    </div>
+                </div>
+            `).join('');
+
+            document.getElementById('documentsModal').classList.add('active');
+        }
+
+        // ------------------------------
+        // Tasks: fetch from backend, render, create (prompt), complete
+        // ------------------------------
+        async function assignTasks(id) {
+            const project = projects.find(p => p.id === id);
+            if (!project) return;
+
+            document.getElementById('tasksModalTitle').textContent = `Assign Tasks - ${project.title}`;
+            document.getElementById('tasksProjectId').textContent = project.projectCode || project.id;
+
+            // fetch tasks from TaskManagement
+            try {
+                const resp = await fetch(`/TaskManagement/GetProjectTasks?projectId=${encodeURIComponent(id)}`);
+                const js = await resp.json();
+                if (!js.success) throw new Error(js.message || 'Failed to load tasks');
+                const tasks = js.data || [];
+
+                const tasksList = document.getElementById('tasksList');
+                if (!tasks.length) {
+                    tasksList.innerHTML = '<div style="text-align:center; padding:1rem; opacity:0.7;">No tasks found for this project.</div>';
+                } else {
+                    tasksList.innerHTML = tasks.map((t, idx) => {
+                        const due = t.dueDate ? new Date(t.dueDate).toLocaleDateString() : 'N/A';
+                        const status = t.status || (t.isCompleted ? 'completed' : 'pending');
+                        return `
+                            <div class="task-item">
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 500; margin-bottom: 0.3rem;">${t.taskName}</div>
+                                    <div style="font-size: 0.85rem; opacity: 0.7;">
+                                        Assigned to: ${t.assignedContractor || 'Not Assigned'} • Due: ${due}
+                                    </div>
+                                    <div style="margin-top:0.4rem;">Allocated: R${(t.allocatedBudget||0).toLocaleString()}</div>
+                                </div>
+                                <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                                    <span class="status-badge status-${status}">${status.toUpperCase()}</span>
+                                    ${!t.isCompleted ? `<button class="btn-action" onclick="completeTask('${t.id}')">Mark Complete</button>` : ''}
+                                    <button class="btn-action" onclick="viewTaskDetailsById('${t.id}')">👁 Details</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+            } catch (err) {
+                console.error('Error loading tasks', err);
+                document.getElementById('tasksList').innerHTML = '<div style="text-align:center; padding:1rem; opacity:0.7;">Error loading tasks.</div>';
+            }
+
+            document.getElementById('tasksModal').classList.add('active');
+        }
+
+        // prompt-based create task (minimal UI change as requested)
+        async function addNewTask() {
+            const projectCodeOrId = document.getElementById('tasksProjectId').textContent;
+            if (!projectCodeOrId) {
+                alert('Open a project tasks modal first.');
+                return;
+            }
+
+            // find the project id from projects list (we display project code above, so find by that code or ID)
+            const proj = projects.find(p => (p.projectCode === projectCodeOrId) || (p.id === projectCodeOrId));
+            const projectId = proj ? proj.id : projectCodeOrId;
+
+            const taskName = prompt('Task name:');
+            if (!taskName) return;
+            // allow choosing contractor by index string list
+            let contractor = '';
+            if (contractors.length > 0) {
+                const list = contractors.map((c, i) => `${i + 1}) ${c.displayName} (${c.email})`).join('\n');
+                const pick = prompt(`Choose contractor (enter number) or leave empty:\n${list}`);
+                const idx = parseInt(pick);
+                if (!isNaN(idx) && idx >= 1 && idx <= contractors.length) {
+                    contractor = contractors[idx - 1].displayName;
+                } else {
+                    contractor = '';
+                }
+            } else {
+                contractor = prompt('Assigned contractor (name):') || '';
+            }
+
+            const due = prompt('Due date (YYYY-MM-DD), leave blank for today:');
+            const dueIso = due ? new Date(due + 'T00:00:00Z').toISOString() : new Date().toISOString();
+            const allocated = parseFloat(prompt('Allocated budget (R):', '0')) || 0;
+            const desc = prompt('Description (optional):', '') || '';
+
+            const payload = {
+                ProjectId: projectId,
+                TaskName: taskName,
+                Description: desc,
+                AssignedContractor: contractor,
+                DueDate: dueIso,
+                AllocatedBudget: allocated
+            };
+
+            try {
+                const resp = await fetch('/TaskManagement/CreateTask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const js = await resp.json();
+                if (js.success) {
+                    alert('Task created successfully');
+                    // refresh projects to reflect spent/allocated values and update card
+                    await loadProjects();
+                    // refresh tasks modal if still open
+                    if (document.getElementById('tasksModal').classList.contains('active')) {
+                        assignTasks(projectId);
+                    }
+                } else {
+                    alert('Error creating task: ' + (js.message || 'unknown'));
+                }
+            } catch (err) {
+                console.error('CreateTask error', err);
+                alert('Error creating task.');
+            }
+        }
+
+        async function completeTask(taskId) {
+            if (!confirm('Mark this task as completed?')) return;
+            try {
+                // Send JSON body with TaskId property (matches server CompleteTaskRequest)
+                const resp = await fetch('/TaskManagement/CompleteTask', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ TaskId: taskId })
+                });
+                const js = await resp.json();
+                if (js.success) {
+                    alert(js.message || 'Task completed');
+                    // refresh projects first to get updated progress from server
+                    await loadProjects();
+                    // attempt to refresh tasks modal if it is open
+                    const projCode = document.getElementById('tasksProjectId').textContent;
+                    const proj = projects.find(p => (p.projectCode === projCode) || (p.id === projCode));
+                    const projectId = proj ? proj.id : projCode;
+                    if (document.getElementById('tasksModal').classList.contains('active')) {
+                        await assignTasks(projectId);
+                    }
+                } else {
+                    alert('Error completing task: ' + (js.message || 'unknown'));
+                }
+            } catch (err) {
+                console.error('CompleteTask error', err);
+                alert('Error completing task.');
+            }
+        }
+
+        function viewTaskDetailsById(taskId) {
+            // fetch single task detail not implemented server-side — use GetProjectTasks to find task
+            // iterate projects to find which project modal is open, then request tasks and show matching
+            const projCode = document.getElementById('tasksProjectId').textContent;
+            const proj = projects.find(p => (p.projectCode === projCode) || (p.id === projCode));
+            const projectId = proj ? proj.id : projCode;
+            fetch(`/TaskManagement/GetProjectTasks?projectId=${encodeURIComponent(projectId)}`)
+                .then(r => r.json())
+                .then(js => {
+                    if (!js.success) { alert('Error fetching task details'); return; }
+                    const t = (js.data || []).find(x => x.id === taskId);
+                    if (!t) return alert('Task not found');
+                    alert(`Task: ${t.taskName}\nAssigned: ${t.assignedContractor}\nDue: ${t.dueDate ? new Date(t.dueDate).toLocaleString() : 'N/A'}\nAllocated: R${(t.allocatedBudget||0).toLocaleString()}\nCompleted: ${t.isCompleted ? 'Yes' : 'No'}\n\nDescription:\n${t.description || ''}`);
+                })
+                .catch(e => { console.error(e); alert('Error fetching task details'); });
+        }
+
+        function editTask(index) {
+            // kept for compatibility with existing calls — user requested minimal changes
+            alert('Opening task edit form...');
+        }
+
+        function viewTaskDetails(index) {
+            // legacy compatibility — simply notify user to use details button
+            alert('Use the Details button next to a task to view real details.');
+        }
+
+        // ------------------------------
+        // Resources: fetch + allocate (prompt)
+        // ------------------------------
+        async function allocateResources(id) {
+            const project = projects.find(p => p.id === id);
+            if (!project) return;
+
+            document.getElementById('resourcesModalTitle').textContent = `Resource Allocation - ${project.title}`;
+            document.getElementById('resourcesProjectId').textContent = project.projectCode || project.id;
+
+            // fetch resources
+            try {
+                const resp = await fetch(`/TaskManagement/GetProjectResources?projectId=${encodeURIComponent(id)}`);
+                const js = await resp.json();
+                if (!js.success) throw new Error(js.message || 'Failed to load resources');
+                const resList = js.data || [];
+
+                const resourcesList = document.getElementById('resourcesList');
+                if (!resList.length) {
+                    resourcesList.innerHTML = '<div style="text-align:center; padding:1rem; opacity:0.7;">No resources allocated yet.</div>';
+                } else {
+                    resourcesList.innerHTML = resList.map(r => {
+                        // percent might be present from server; if not, calculate from project.totalBudget
+                        let percent = r.percentOfBudget;
+                        if (percent == null || isNaN(percent)) {
+                            percent = project.totalBudget > 0 ? ((r.totalCost || 0) / project.totalBudget) * 100 : 0;
+                        }
+                        percent = Math.round(percent * 100) / 100; // round to 2 decimals
+                        return `
+                        <div class="resource-item">
+                            <div style="flex: 1;">
+                                <div style="font-weight: 500; margin-bottom: 0.3rem;">🔧 ${r.resourceName}</div>
+                                <div style="font-size: 0.85rem; opacity: 0.7;">
+                                    Phase: ${r.phase} • ${r.allocatedQuantity}/${r.quantity} allocated
+                                </div>
+                                <div style="margin-top:0.4rem;">Total Cost: R${(r.totalCost||0).toLocaleString()} • ${percent}% of budget</div>
+                            </div>
+                            <div style="display:flex; gap:0.5rem; align-items:center;">
+                                <span class="status-badge status-${r.status}">${(r.status || '').toUpperCase()}</span>
+                            </div>
+                        </div>
+                    `;
+                    }).join('');
+                }
+            } catch (err) {
+                console.error('Error loading resources', err);
+                document.getElementById('resourcesList').innerHTML = '<div style="text-align:center; padding:1rem; opacity:0.7;">Error loading resources.</div>';
+            }
+
+            document.getElementById('resourcesModal').classList.add('active');
+        }
+
+        // prompt-based allocate resource
+        async function addNewResource() {
+            const projCode = document.getElementById('resourcesProjectId').textContent;
+            if (!projCode) {
+                alert('Open a project resources modal first.');
+                return;
+            }
+            const proj = projects.find(p => (p.projectCode === projCode) || (p.id === projCode));
+            const projectId = proj ? proj.id : projCode;
+
+            // load tasks for selection (so resource can be attached to a task)
+            let tasks = [];
+            try {
+                const resp = await fetch(`/TaskManagement/GetProjectTasks?projectId=${encodeURIComponent(projectId)}`);
+                const js = await resp.json();
+                if (js.success) tasks = js.data || [];
+            } catch (e) {
+                console.warn('Could not load tasks for resource allocation', e);
+            }
+
+            let taskId = '';
+            if (tasks.length > 0) {
+                const list = tasks.map((t, i) => `${i + 1}) ${t.taskName} (${t.assignedContractor || 'N/A'})`).join('\n');
+                const pick = prompt(`Choose task to attach resource to (enter number):\n${list}`);
+                const idx = parseInt(pick);
+                if (!isNaN(idx) && idx >= 1 && idx <= tasks.length) {
+                    taskId = tasks[idx - 1].id;
+                } else {
+                    taskId = '';
+                }
+            } else {
+                const pick = prompt('No tasks found for project. Enter a Task ID to attach resource to (optional):');
+                taskId = pick || '';
+            }
+
+            const resourceName = prompt('Resource name:');
+            if (!resourceName) return;
+            const phase = prompt('Phase (e.g. Foundation):') || '';
+            const qty = parseInt(prompt('Quantity:', '1')) || 1;
+            const cpu = parseFloat(prompt('Cost per unit (R):', '0')) || 0;
+
+            const payload = {
+                ProjectId: projectId,
+                TaskId: taskId,
+                ResourceName: resourceName,
+                Phase: phase,
+                Quantity: qty,
+                CostPerUnit: cpu
+            };
+
+            try {
+                const resp = await fetch('/TaskManagement/AllocateResource', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const js = await resp.json();
+                if (js.success) {
+                    alert('Resource allocated successfully');
+                    allocateResources(projectId);
+                    loadProjects(); // refresh spent
+                } else {
+                    alert('Error allocating resource: ' + (js.message || 'unknown'));
+                }
+            } catch (err) {
+                console.error('AllocateResource error', err);
+                alert('Error allocating resource.');
+            }
+        }
+
+        function allocateResource(index) {
+            // kept for compatibility — open addNewResource
+            addNewResource();
+        }
+
+        function editResource(index) {
+            alert('Opening resource edit form...');
+        }
+
+        function closeProgressModal() {
+            document.getElementById('progressModal').classList.remove('active');
+        }
+
+        function closeDocsModal() {
+            document.getElementById('documentsModal').classList.remove('active');
+        }
+
+        function closeTasksModal() {
+            document.getElementById('tasksModal').classList.remove('active');
+        }
+
+        function closeResourcesModal() {
+            document.getElementById('resourcesModal').classList.remove('active');
+        }
+
+        function approveDocument(index) {
+            alert('Document approved successfully!');
+        }
+
+        function rejectDocument(index) {
+            const reason = prompt('Enter rejection reason:');
+            if (reason) {
+                alert('Document rejected with reason: ' + reason);
+            }
+        }
+
+        // Incoming Requests - full implementation (open param controls whether modal is shown)
+        async function incomingRequests(open = true) {
+            try {
+                const resp = await fetch('/ProjectManager/GetClientRequests');
+                const res = await resp.json();
+
+                if (!res.success) {
+                    alert('Error loading requests: ' + (res.message || 'Unknown'));
+                    return;
+                }
+
+                currentRequests = res.data || [];
+                renderRequests();
+                if (open) document.getElementById('requestsModal').classList.add('active');
+            } catch (err) {
+                console.error('Error fetching client requests:', err);
+                alert('Error loading client requests.');
+            }
+        }
+
+        function renderRequests() {
+            const list = document.getElementById('requestsList');
+            list.innerHTML = '';
+
+            if (!currentRequests || currentRequests.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:2rem; opacity:0.7;">No pending requests</div>';
+                return;
+            }
+
+            currentRequests.forEach(request => {
+                const card = document.createElement('div');
+                card.className = 'project-card';
+                card.innerHTML = `
+                    <div class="project-header">
+                        <div>
+                            <div class="project-title">${request.projectTitle}</div>
+                            <div class="project-id">Request from: ${request.clientName}</div>
+                        </div>
+                        <span class="status-badge status-${(request.urgency || '').toLowerCase() === 'urgent' ? 'delayed' : 'pending'}">${request.urgency || 'Normal'}</span>
+                    </div>
+
+                    <div class="project-info">
+                        <div class="info-item">
+                            <span class="info-label">Client Email</span>
+                            <span class="info-value">${request.clientEmail}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Phone</span>
+                            <span class="info-value">${request.clientPhone}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Company</span>
+                            <span class="info-value">${request.companyName || 'N/A'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Project Type</span>
+                            <span class="info-value">${request.projectType}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Site Address</span>
+                            <span class="info-value">${request.siteAddress}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Estimated Budget</span>
+                            <span class="info-value">R${(request.estimatedBudget || 0).toLocaleString()}</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item" style="margin: 1rem 0;">
+                        <span class="info-label">Description</span>
+                        <span class="info-value">${request.projectDescription}</span>
+                    </div>
+
+                    ${request.additionalNotes ? `
+                        <div class="info-item" style="margin-bottom: 1rem;">
+                            <span class="info-label">Additional Notes</span>
+                            <span class="info-value">${request.additionalNotes}</span>
+                        </div>
+                    ` : ''}
+
+                    <div class="project-actions">
+                        <button class="btn-action" onclick="acceptRequest('${request.id}')">✓ Accept & Create Project</button>
+                        <button class="btn-action" onclick="viewRequestDetails('${request.id}')">👁 View Full Details</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        // Accept request and open project creation modal
+        async function acceptRequest(requestId) {
+            const request = currentRequests.find(r => r.id === requestId);
+            if (!request) return;
+
+            // populate contractor dropdown (in case not yet)
+            populateContractorSelects();
+
+            // Pre-fill form with request data
+            document.getElementById('requestIdHidden').value = requestId;
+            document.getElementById('acceptProjectCode').value = `PRJ-${Date.now().toString().slice(-6)}`;
+            document.getElementById('acceptProjectTitle').value = request.projectTitle;
+            document.getElementById('acceptClientName').value = request.clientName + (request.companyName ? ` (${request.companyName})` : '');
+            document.getElementById('acceptProjectType').value = request.projectType;
+            document.getElementById('acceptSiteAddress').value = request.siteAddress;
+            document.getElementById('acceptBudget').value = request.estimatedBudget || 0;
+
+            // ensure acceptStartDate is set to a date input value (YYYY-MM-DD)
+            if (request.preferredStart) {
+                // convert to ISO date string to avoid server-side ambiguity
+                try {
+                    const iso = new Date(request.preferredStart + 'T00:00:00Z').toISOString().split('T')[0];
+                    document.getElementById('acceptStartDate').value = iso;
+                } catch (e) {
+                    document.getElementById('acceptStartDate').value = new Date().toISOString().split('T')[0];
+                }
+            } else {
+                document.getElementById('acceptStartDate').value = new Date().toISOString().split('T')[0];
+            }
+
+            document.getElementById('acceptPhase').value = 'Planning';
+            document.getElementById('acceptDescription').value = request.projectDescription || '';
+
+            // Close requests modal and open accept modal
+            document.getElementById('requestsModal').classList.remove('active');
+            document.getElementById('acceptRequestModal').classList.add('active');
+        }
+
+        // Submit project from request
+        async function submitProjectFromRequest(event) {
+            event.preventDefault();
+
+            // prepare a full ISO UTC string for start date so server parses DateTime as Utc
+            const rawDate = document.getElementById('acceptStartDate').value;
+            const startDateIso = rawDate ? new Date(rawDate + 'T00:00:00Z').toISOString() : new Date().toISOString();
+
+            const projectData = {
+                requestId: document.getElementById('requestIdHidden').value,
+                projectCode: document.getElementById('acceptProjectCode').value,
+                title: document.getElementById('acceptProjectTitle').value,
+                client: document.getElementById('acceptClientName').value,
+                contractor: document.getElementById('acceptContractor').value,
+                totalBudget: parseFloat(document.getElementById('acceptBudget').value) || 0,
+                startDate: startDateIso,
+                currentPhase: document.getElementById('acceptPhase').value,
+                siteAddress: document.getElementById('acceptSiteAddress').value,
+                projectType: document.getElementById('acceptProjectType').value,
+                description: document.getElementById('acceptDescription').value
+            };
+
+            try {
+                const response = await fetch('/ProjectManager/CreateProjectFromRequest', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(projectData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message);
+                    closeAcceptModal();
+                    // Refresh projects and requests
+                    loadProjects();
+                    await incomingRequests(false); // refresh request list silently
+                } else {
+                    alert('Error: ' + result.message);
+                }
+            } catch (error) {
+                console.error('Error creating project:', error);
+                alert('Error creating project from request');
+            }
+        }
+
+        function viewRequestDetails(requestId) {
+            const request = currentRequests.find(r => r.id === requestId);
+            if (!request) return;
+
+            alert(`Request Details:\n\nClient: ${request.clientName}\nEmail: ${request.clientEmail}\nPhone: ${request.clientPhone}\nProject: ${request.projectTitle}\nType: ${request.projectType}\nBudget: R${(request.estimatedBudget || 0).toLocaleString()}\n\nDescription:\n${request.projectDescription}\n\nContact via: ${request.contactMethod}\nUrgency: ${request.urgency}`);
+        }
+
+        function closeAcceptModal() {
+            document.getElementById('acceptRequestModal').classList.remove('active');
+        }
+
+        function closeRequestsModal() {
+            document.getElementById('requestsModal').classList.remove('active');
+        }
+
+        // Update the DOMContentLoaded event
+        window.addEventListener('DOMContentLoaded', () => {
+            loadProjects();
+            loadContractors(); // Load contractors on page load (fills both dropdowns)
+        });
+    </script>
+
+</body>
+</html>

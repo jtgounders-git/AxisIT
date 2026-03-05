@@ -1,0 +1,28 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Create Project</title>
+</head>
+<body>
+    <h2>Create Project</h2>
+    <form method="post" action="/Home/CreateProject">
+        @Html.AntiForgeryToken()
+        <label>Title</label><br /><input name="Title" /><br />
+        <label>Total Budget</label><br /><input name="TotalBudget" type="number" step="0.01" /><br />
+        <label>Start Date</label><br /><input name="StartDate" type="date" /><br />
+        <hr />
+        <p>Phases: provide comma-separated values for names, budgets, deadlines (YYYY-MM-DD), projected%</p>
+        <label>Phase Names</label><br /><input name="phaseNames" placeholder="Design,Foundation,Finishing" /><br />
+        <label>Phase Budgets</label><br /><input name="phaseBudgets" placeholder="10000,20000,5000" /><br />
+        <label>Phase Deadlines</label><br /><input name="phaseDeadlines" placeholder="2025-10-01,2026-02-15,2026-06-01" /><br />
+        <label>Phase Projected %</label><br /><input name="phaseProjected" placeholder="10,50,40" /><br />
+        <button type="submit">Create</button>
+    </form>
+
+    <a href="/Home/Projects">Back</a>
+</body>
+</html>

@@ -1,0 +1,459 @@
+﻿@{
+    Layout = null;
+    var user = ViewData["User"]?.ToString() ?? "Contractor";
+    var role = ViewData["Role"]?.ToString() ?? "Contractor";
+    var email = ViewData["Email"]?.ToString() ?? "";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Task List - @user</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e7d, #4a5f9e);
+            color: white;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.2rem 3rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #2c3e7d;
+        }
+
+        .logo-text h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .logo-text p {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .welcome-text {
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.7rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+            .back-btn:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-2px);
+            }
+
+        /* Main Content */
+        .main-content {
+            padding: 3rem;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 300;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 3rem;
+            font-weight: 300;
+        }
+
+        /* Stats Bar */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-number {
+            font-size: 1.8rem;
+            font-weight: 300;
+            color: rgba(200, 180, 255, 1);
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-top: 0.3rem;
+        }
+
+        /* Task List */
+        .task-list {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .task-item {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 20px;
+            align-items: center;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+            .task-item:hover {
+                background: rgba(255, 255, 255, 0.12);
+                transform: translateX(5px);
+                box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            }
+
+        .task-status {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 3px solid white;
+            flex-shrink: 0;
+        }
+
+            .task-status.pending {
+                background: #ffd700;
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            }
+
+            .task-status.completed {
+                background: #50c878;
+                box-shadow: 0 0 10px rgba(80, 200, 120, 0.5);
+            }
+
+        .task-content {
+            text-align: left;
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 1.2rem;
+            font-weight: 500;
+            margin-bottom: 0.6rem;
+        }
+
+        .task-details {
+            opacity: 0.75;
+            font-size: 0.9rem;
+            font-weight: 300;
+        }
+
+        .task-budget {
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(74, 144, 226, 0.3);
+            border-color: rgba(74, 144, 226, 0.5);
+        }
+
+        .task-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .btn-complete {
+            background: rgba(80, 200, 120, 0.3);
+            border: 1px solid rgba(80, 200, 120, 0.5);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+            .btn-complete:hover {
+                background: rgba(80, 200, 120, 0.5);
+                transform: scale(1.05);
+            }
+
+            .btn-complete:disabled {
+                opacity: 0.5;
+                cursor: not-allowed;
+                background: rgba(100, 100, 100, 0.3);
+                border-color: rgba(100, 100, 100, 0.5);
+            }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+            .status-badge.completed {
+                background: rgba(80, 200, 120, 0.3);
+                border: 1px solid rgba(80, 200, 120, 0.5);
+                color: #50c878;
+            }
+
+            .status-badge.pending {
+                background: rgba(255, 215, 0, 0.3);
+                border: 1px solid rgba(255, 215, 0, 0.5);
+                color: #ffd700;
+            }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.6;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            font-size: 1.2rem;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body data-user-email="@email">
+    <!-- Header -->
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo">AI</div>
+            <div class="logo-text">
+                <h1>Axis I.T</h1>
+                <p>Construction Management System</p>
+            </div>
+        </div>
+        <div class="user-section">
+            <span class="welcome-text">Welcome, @user!</span>
+            <a href="/Home/Dashboard" class="back-btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <h1 class="page-title">Task List</h1>
+        <p class="page-subtitle">Your assigned tasks and their current status</p>
+
+        <!-- Stats Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <div class="stat-number" id="totalTasks">0</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="pendingTasks">0</div>
+                <div class="stat-label">Pending</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="completedTasks">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" id="totalBudget">R0</div>
+                <div class="stat-label">Total Allocated</div>
+            </div>
+        </div>
+
+        <!-- Task List -->
+        <div class="task-list" id="tasksList">
+            <div class="loading">Loading your tasks...</div>
+        </div>
+    </div>
+
+    <script>
+        const userEmail = '@email';
+        const userName = '@user';
+        let allTasks = [];
+
+        console.log('User Email:', userEmail);
+        console.log('User Name:', userName);
+
+        // Load tasks on page load
+        async function loadTasks() {
+            if (!userEmail && !userName) {
+                document.getElementById('tasksList').innerHTML = '<div class="empty-state">Unable to identify user. Please log in again.</div>';
+                return;
+            }
+
+            try {
+                // Fetch all tasks
+                const response = await fetch('/Contractor/GetMyTasks');
+                const result = await response.json();
+
+                console.log('API Response:', result);
+
+                if (result.success) {
+                    allTasks = result.data || [];
+                    console.log('Tasks loaded:', allTasks);
+                    renderTasks();
+                    updateStatistics();
+                } else {
+                    document.getElementById('tasksList').innerHTML = `<div class="empty-state">Error loading tasks: ${result.message}</div>`;
+                }
+            } catch (error) {
+                console.error('Error loading tasks:', error);
+                document.getElementById('tasksList').innerHTML = '<div class="empty-state">Error loading tasks. Please refresh the page.</div>';
+            }
+        }
+
+        function renderTasks() {
+            const tasksList = document.getElementById('tasksList');
+
+            if (allTasks.length === 0) {
+                tasksList.innerHTML = '<div class="empty-state">No tasks assigned to you yet.</div>';
+                return;
+            }
+
+            tasksList.innerHTML = allTasks.map(task => {
+                const status = task.status || (task.isCompleted ? 'completed' : 'pending');
+                const isCompleted = task.isCompleted || status === 'completed';
+                const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'No due date';
+                const description = task.description || 'No description provided';
+                const assignedTo = task.assignedContractor || 'Not assigned';
+
+                return `
+                    <div class="task-item">
+                        <div class="task-status ${status}"></div>
+                        <div class="task-content">
+                            <div class="task-title">${task.taskName}</div>
+                            <div class="task-details">
+                                Assigned to: ${assignedTo} • Due: ${dueDate}
+                            </div>
+                            <div class="task-details" style="margin-top: 0.5rem;">
+                                Allocated: <strong>R${(task.allocatedBudget || 0).toLocaleString()}</strong>
+                            </div>
+                        </div>
+                        <div class="task-actions">
+                            <span class="status-badge ${status}">${isCompleted ? 'COMPLETED' : 'PENDING'}</span>
+                            ${!isCompleted ? `
+                                <button class="btn-complete" onclick="markComplete('${task.id}')">
+                                    Mark Complete
+                                </button>
+                            ` : ''}
+                            <button class="btn-complete" onclick="viewTaskDetails('${task.id}')" style="background: rgba(138, 107, 255, 0.3); border-color: rgba(138, 107, 255, 0.5);">
+                                👁 Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function markComplete(taskId) {
+            if (!confirm('Mark this task as completed?')) return;
+
+            try {
+                const response = await fetch('/TaskManagement/CompleteTask', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ TaskId: taskId })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert(result.message || 'Task marked as completed!');
+                    // Reload tasks to show updated status
+                    await loadTasks();
+                } else {
+                    alert('Error: ' + (result.message || 'Failed to complete task'));
+                }
+            } catch (error) {
+                console.error('Error completing task:', error);
+                alert('Error completing task. Please try again.');
+            }
+        }
+
+        function viewTaskDetails(taskId) {
+            const task = allTasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const dueDate = task.dueDate ? new Date(task.dueDate).toLocaleString() : 'No due date';
+            const status = task.isCompleted ? 'Completed' : 'Pending';
+            const description = task.description || 'No description provided';
+
+            alert(`Task Details:\n\nTask: ${task.taskName}\nStatus: ${status}\nAssigned to: ${task.assignedContractor}\nDue: ${dueDate}\nAllocated Budget: R${(task.allocatedBudget || 0).toLocaleString()}\n\nDescription:\n${description}`);
+        }
+
+        function updateStatistics() {
+            const total = allTasks.length;
+            const completed = allTasks.filter(t => t.isCompleted || t.status === 'completed').length;
+            const pending = total - completed;
+            const totalBudget = allTasks.reduce((sum, t) => sum + (t.allocatedBudget || 0), 0);
+
+            document.getElementById('totalTasks').textContent = total;
+            document.getElementById('pendingTasks').textContent = pending;
+            document.getElementById('completedTasks').textContent = completed;
+            document.getElementById('totalBudget').textContent = `R${totalBudget.toLocaleString()}`;
+        }
+
+        // Load tasks when page loads
+        window.addEventListener('DOMContentLoaded', loadTasks);
+    </script>
+</body>
+</html>

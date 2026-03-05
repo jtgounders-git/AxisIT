@@ -1,0 +1,868 @@
+﻿@{
+    Layout = null;
+    var displayUser = ViewData["User"]?.ToString() ?? Context.Session.GetString("User");
+    var displayEmail = ViewData["Email"]?.ToString() ?? Context.Session.GetString("Email");
+    var displayRole = ViewData["Role"]?.ToString() ?? Context.Session.GetString("Role");
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project Timeline View - Axis IT</title>
+    <style>
+        :root {
+            --bg1: #2c3e7d;
+            --bg2: #4a5f9e;
+            --accent: #8a78ea;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --danger: #f87171;
+            --info: #60a5fa;
+            --white: #fff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #2a3c6e 0%, #3d5288 50%, #4a5f9e 100%);
+            color: var(--white);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 48px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(0,0,0,0.1);
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .logo {
+            width: 56px;
+            height: 56px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #2c3e7d;
+        }
+
+        .logo-text h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text p {
+            margin: 2px 0 0 0;
+            font-size: 0.9rem;
+            opacity: 0.85;
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+            .user-info .name {
+                font-weight: 600;
+                font-size: 0.95rem;
+            }
+
+            .user-info .email {
+                font-size: 0.85rem;
+                opacity: 0.8;
+            }
+
+            .user-info .role {
+                display: inline-block;
+                background: rgba(138,120,234,0.3);
+                padding: 2px 8px;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                margin-top: 2px;
+            }
+
+        .back-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: var(--white);
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+            .back-btn:hover {
+                background: rgba(255,255,255,0.12);
+            }
+
+        .main-content {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .page-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .page-subtitle {
+            font-size: 1.05rem;
+            opacity: 0.85;
+        }
+
+        .controls-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            padding: 20px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 12px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--white);
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+            .filter-btn:hover {
+                background: rgba(255,255,255,0.1);
+            }
+
+            .filter-btn.active {
+                background: linear-gradient(135deg, #8a78ea 0%, #7b6bd9 100%);
+                border-color: transparent;
+            }
+
+        .view-toggle {
+            display: flex;
+            gap: 8px;
+        }
+
+        .toggle-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: var(--white);
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+            .toggle-btn:hover {
+                background: rgba(255,255,255,0.1);
+            }
+
+            .toggle-btn.active {
+                background: var(--accent);
+                border-color: transparent;
+            }
+
+        .timeline-container {
+            background: rgba(255,255,255,0.04);
+            border-radius: 16px;
+            padding: 32px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .timeline-header {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+        }
+
+        .timeline-months {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0.9;
+        }
+
+        .timeline-row {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 24px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .project-info {
+            background: rgba(255,255,255,0.06);
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .project-name {
+            font-weight: 600;
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+        }
+
+        .project-meta {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+
+        .status-in-progress {
+            background: rgba(96,165,250,0.2);
+            color: var(--info);
+        }
+
+        .status-completed {
+            background: rgba(74,222,128,0.2);
+            color: var(--success);
+        }
+
+        .status-delayed {
+            background: rgba(248,113,113,0.2);
+            color: var(--danger);
+        }
+
+        .status-needs-attention {
+            background: rgba(251,191,36,0.2);
+            color: var(--warning);
+        }
+
+        .status-planning {
+            background: rgba(168,162,255,0.2);
+            color: #a8a2ff;
+        }
+
+        .timeline-bar-container {
+            position: relative;
+            height: 50px;
+            background: rgba(255,255,255,0.03);
+            border-radius: 8px;
+        }
+
+        .timeline-bar {
+            position: absolute;
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, rgba(138,120,234,0.6) 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(138,120,234,0.3);
+        }
+
+            .timeline-bar:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(138,120,234,0.4);
+            }
+
+        .progress-text {
+            z-index: 1;
+        }
+
+        .list-view {
+            display: none;
+        }
+
+        .project-card {
+            background: rgba(255,255,255,0.06);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+            .project-card:hover {
+                background: rgba(255,255,255,0.08);
+                transform: translateY(-2px);
+            }
+
+        .project-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .project-card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .project-card-dates {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        .project-card-body {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .card-detail {
+            font-size: 0.9rem;
+        }
+
+        .card-detail-label {
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        .card-detail-value {
+            font-weight: 600;
+        }
+
+        .progress-bar-container {
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            height: 8px;
+            overflow: hidden;
+            margin-top: 16px;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent) 0%, var(--success) 100%);
+            border-radius: 8px;
+            transition: width 0.3s ease;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 1.1rem;
+            opacity: 0.7;
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @@keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-top: 32px;
+            padding: 16px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        @@media (max-width: 1200px) {
+            .timeline-header,
+            .timeline-row {
+                grid-template-columns: 200px 1fr;
+            }
+        }
+
+        @@media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 16px;
+                padding: 20px 24px;
+            }
+
+            .user-section {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .user-info {
+                text-align: center;
+            }
+
+            .page-title {
+                font-size: 1.75rem;
+            }
+
+            .controls-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .timeline-header,
+            .timeline-row {
+                grid-template-columns: 1fr;
+            }
+
+            .timeline-months {
+                display: none;
+            }
+
+            .project-card-body {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo-section">
+            <div class="logo">AI</div>
+            <div class="logo-text">
+                <h1>Axis I.T</h1>
+                <p>Construction Management System</p>
+            </div>
+        </div>
+        <div class="user-section">
+            <div class="user-info">
+                <div class="name">@displayUser</div>
+                <div class="email">@displayEmail</div>
+                <div class="role">@displayRole</div>
+            </div>
+            <a href="/Home/Dashboard" class="back-btn">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="page-header">
+            <div class="page-title">📅 Project Timeline View</div>
+            <div class="page-subtitle">Visual timeline and scheduling for all active projects</div>
+        </div>
+
+        <div class="controls-bar">
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all" onclick="filterProjects('all')">All Projects</button>
+                <button class="filter-btn" data-filter="in-progress" onclick="filterProjects('in-progress')">In Progress</button>
+                <button class="filter-btn" data-filter="completed" onclick="filterProjects('completed')">Completed</button>
+                <button class="filter-btn" data-filter="delayed" onclick="filterProjects('delayed')">Delayed</button>
+                <button class="filter-btn" data-filter="needs-attention" onclick="filterProjects('needs-attention')">Needs Attention</button>
+            </div>
+            <div class="view-toggle">
+                <button class="toggle-btn active" onclick="switchView('timeline')">📊 Timeline</button>
+                <button class="toggle-btn" onclick="switchView('list')">📋 List</button>
+            </div>
+        </div>
+
+        <div id="timelineView" class="timeline-view">
+            <div class="timeline-container">
+                <div class="timeline-header">
+                    <div style="font-weight: 600; font-size: 1rem;">Projects</div>
+                    <div class="timeline-months" id="timelineMonths">
+                        <!-- Months will be generated by JavaScript -->
+                    </div>
+                </div>
+                <div id="timelineContent">
+                    <div class="empty-state">
+                        <div class="loading-spinner"></div>
+                        <div class="empty-state-text">Loading project timelines...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(96,165,250,0.6);"></div>
+                    <span>In Progress</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(74,222,128,0.6);"></div>
+                    <span>Completed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(248,113,113,0.6);"></div>
+                    <span>Delayed</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: rgba(251,191,36,0.6);"></div>
+                    <span>Needs Attention</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="listView" class="list-view">
+            <div id="listContent">
+                <!-- List view content will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const currentUserEmail = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(displayEmail ?? ""));
+        const currentUserName = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(displayUser ?? ""));
+
+        let allProjects = [];
+        let currentFilter = 'all';
+        let currentView = 'timeline';
+
+        console.log('[Timeline] Logged in as:', currentUserEmail);
+
+        async function loadProjects() {
+            try {
+                console.log('[Timeline] Fetching projects from API...');
+
+                const response = await fetch('/ProjectManager/GetProjectTimelines');
+                const data = await response.json();
+
+                if (data.success) {
+                    allProjects = data.data;
+                    console.log('[Timeline] Projects loaded:', allProjects.length);
+                    if (allProjects.length > 0) {
+                        console.log('[Timeline] Sample project:', allProjects[0]);
+                    }
+                } else {
+                    console.error('[Timeline] API error:', data.message);
+                    allProjects = [];
+                }
+
+                generateTimelineMonths();
+                renderView();
+            } catch (err) {
+                console.error('[Timeline] Error loading:', err);
+                document.getElementById('timelineContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">⚠️</div>
+                        <div class="empty-state-text">Error loading projects: ${err.message}</div>
+                    </div>
+                `;
+            }
+        }
+
+        function generateTimelineMonths() {
+            const monthsContainer = document.getElementById('timelineMonths');
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const currentYear = new Date().getFullYear();
+
+            monthsContainer.innerHTML = months.map((month, i) =>
+                `<div>${month} ${currentYear}</div>`
+            ).join('');
+        }
+
+        function renderView() {
+            if (currentView === 'timeline') {
+                renderTimelineView();
+            } else {
+                renderListView();
+            }
+        }
+
+        function renderTimelineView() {
+            const content = document.getElementById('timelineContent');
+
+            let filtered = allProjects;
+            if (currentFilter !== 'all') {
+                const filterLower = currentFilter.toLowerCase().replace('-', ' ');
+                filtered = allProjects.filter(p =>
+                    p.status.toLowerCase() === filterLower
+                );
+            }
+
+            if (filtered.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">
+                            ${currentFilter === 'all' ? 'No projects found. Create a project to get started!' : `No ${currentFilter.replace('-', ' ')} projects`}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            content.innerHTML = filtered.map(project => {
+                const start = new Date(project.startDate);
+                const end = new Date(project.endDate);
+
+                // Calculate position and width based on year timeline
+                const yearStart = new Date(start.getFullYear(), 0, 1);
+                const yearEnd = new Date(start.getFullYear(), 11, 31);
+
+                const totalYearDays = (yearEnd - yearStart) / (1000 * 60 * 60 * 24);
+                const startDay = (start - yearStart) / (1000 * 60 * 60 * 24);
+                const endDay = (end - yearStart) / (1000 * 60 * 60 * 24);
+
+                const startPercent = (startDay / totalYearDays) * 100;
+                const duration = ((endDay - startDay) / totalYearDays) * 100;
+
+                const statusClass = project.status.toLowerCase().replace(' ', '-');
+                const statusColor = getStatusColor(project.status);
+
+                return `
+                    <div class="timeline-row">
+                        <div class="project-info">
+                            <div class="project-name">${project.projectName}</div>
+                            <div class="project-meta">
+                                <span>📍 ${project.location || 'No location'}</span>
+                                <span>👤 ${project.manager}</span>
+                                <span>💰 R${Number(project.budget).toLocaleString()}</span>
+                            </div>
+                            <span class="status-badge status-${statusClass}">${project.status}</span>
+                        </div>
+                        <div class="timeline-bar-container">
+                            <div class="timeline-bar"
+                                 style="left: ${Math.max(0, startPercent)}%;
+                                        width: ${Math.min(100 - startPercent, duration)}%;
+                                        background: ${statusColor};"
+                                 onclick="showProjectDetails('${project.id}')">
+                                <span class="progress-text">${project.progress}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderListView() {
+            const content = document.getElementById('listContent');
+
+            let filtered = allProjects;
+            if (currentFilter !== 'all') {
+                const filterLower = currentFilter.toLowerCase().replace('-', ' ');
+                filtered = allProjects.filter(p =>
+                    p.status.toLowerCase() === filterLower
+                );
+            }
+
+            if (filtered.length === 0) {
+                content.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <div class="empty-state-text">
+                            ${currentFilter === 'all' ? 'No projects found' : `No ${currentFilter.replace('-', ' ')} projects`}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            content.innerHTML = filtered.map(project => {
+                const statusClass = project.status.toLowerCase().replace(' ', '-');
+                const startDate = formatDate(project.startDate);
+                const endDate = formatDate(project.endDate);
+                const daysRemaining = Math.ceil((new Date(project.endDate) - new Date()) / (1000 * 60 * 60 * 24));
+
+                return `
+                    <div class="project-card" onclick="showProjectDetails('${project.id}')">
+                        <div class="project-card-header">
+                            <div>
+                                <div class="project-card-title">${project.projectName}</div>
+                                <div class="project-card-dates">
+                                    ${startDate} → ${endDate}
+                                    ${daysRemaining > 0 ? `<span style="color: #60a5fa; margin-left: 12px;">📅 ${daysRemaining} days remaining</span>` : '<span style="color: #f87171; margin-left: 12px;">⚠️ Overdue</span>'}
+                                </div>
+                            </div>
+                            <span class="status-badge status-${statusClass}">${project.status}</span>
+                        </div>
+                        <div class="project-card-body">
+                            <div class="card-detail">
+                                <div class="card-detail-label">Project Type</div>
+                                <div class="card-detail-value">${project.projectType}</div>
+                            </div>
+                            <div class="card-detail">
+                                <div class="card-detail-label">Project Manager</div>
+                                <div class="card-detail-value">${project.manager}</div>
+                            </div>
+                            <div class="card-detail">
+                                <div class="card-detail-label">Budget</div>
+                                <div class="card-detail-value">R${Number(project.budget).toLocaleString()}</div>
+                            </div>
+                            <div class="card-detail">
+                                <div class="card-detail-label">Location</div>
+                                <div class="card-detail-value">${project.location || 'Not specified'}</div>
+                            </div>
+                            <div class="card-detail">
+                                <div class="card-detail-label">Priority</div>
+                                <div class="card-detail-value">
+                                    <span style="color: ${project.priority === 'High' ? '#f87171' : project.priority === 'Medium' ? '#fbbf24' : '#4ade80'};">
+                                        ${project.priority === 'High' ? '🔴' : project.priority === 'Medium' ? '🟡' : '🟢'} ${project.priority}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress-bar-container">
+                            <div class="progress-bar-fill" style="width: ${project.progress}%;"></div>
+                        </div>
+                        <div style="text-align: right; margin-top: 8px; font-size: 0.85rem; opacity: 0.8;">
+                            Progress: ${project.progress}%
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getStatusColor(status) {
+            const statusLower = status.toLowerCase();
+            const colors = {
+                'in progress': 'linear-gradient(90deg, rgba(96,165,250,0.8) 0%, rgba(96,165,250,0.5) 100%)',
+                'completed': 'linear-gradient(90deg, rgba(74,222,128,0.8) 0%, rgba(74,222,128,0.5) 100%)',
+                'delayed': 'linear-gradient(90deg, rgba(248,113,113,0.8) 0%, rgba(248,113,113,0.5) 100%)',
+                'needs attention': 'linear-gradient(90deg, rgba(251,191,36,0.8) 0%, rgba(251,191,36,0.5) 100%)',
+                'planning': 'linear-gradient(90deg, rgba(168,162,255,0.8) 0%, rgba(168,162,255,0.5) 100%)'
+            };
+            return colors[statusLower] || colors['in progress'];
+        }
+
+        function filterProjects(filter) {
+            currentFilter = filter;
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            const activeBtn = document.querySelector(`[data-filter="${filter}"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+
+            console.log('[Timeline] Filter changed to:', filter);
+            renderView();
+        }
+
+        function switchView(view) {
+            currentView = view;
+
+            document.querySelectorAll('.toggle-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            if (view === 'timeline') {
+                document.getElementById('timelineView').style.display = 'block';
+                document.getElementById('listView').style.display = 'none';
+            } else {
+                document.getElementById('timelineView').style.display = 'none';
+                document.getElementById('listView').style.display = 'block';
+            }
+
+            console.log('[Timeline] View changed to:', view);
+            renderView();
+        }
+
+        function showProjectDetails(projectId) {
+            const project = allProjects.find(p => p.id === projectId);
+            if (project) {
+                alert(`Project Details:\n\n` +
+                      `Name: ${project.projectName}\n` +
+                      `Type: ${project.projectType}\n` +
+                      `Status: ${project.status}\n` +
+                      `Progress: ${project.progress}%\n` +
+                      `Budget: R${Number(project.budget).toLocaleString()}\n` +
+                      `Manager: ${project.manager}\n` +
+                      `Start: ${formatDate(project.startDate)}\n` +
+                      `End: ${formatDate(project.endDate)}\n` +
+                      `Priority: ${project.priority}\n\n` +
+                      `Click OK to continue.`);
+                // Optional: Redirect to project details
+                // window.location.href = `/ProjectManager/PMDashboard?projectId=${projectId}`;
+            }
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Initialize on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            console.log('[Timeline] Page loaded, initializing...');
+            loadProjects();
+        });
+    </script>
+</body>
+</html>
